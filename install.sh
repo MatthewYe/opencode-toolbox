@@ -9,18 +9,21 @@ echo "    Repo: $REPO_DIR"
 echo "    Target: $CONFIG_DIR"
 echo ""
 
-symlink_dir() {
-  local name="$1"
-  local src="$REPO_DIR/$name"
-  local dst="$CONFIG_DIR/$name"
+symlink_item() {
+  local rel_path="$1"
+  local src="$REPO_DIR/$rel_path"
+  local dst="$CONFIG_DIR/$rel_path"
+  local dst_parent="$(dirname "$dst")"
+
+  mkdir -p "$dst_parent"
 
   if [ -L "$dst" ]; then
-    echo "[skip] $dst already symlinked"
+    echo "[skip] $dst"
     return
   fi
 
   if [ -e "$dst" ]; then
-    echo "[WARN] $dst exists and is not a symlink. Backing up to $dst.bak"
+    echo "[WARN] $dst exists, backing up to $dst.bak"
     mv "$dst" "$dst.bak"
   fi
 
@@ -28,10 +31,25 @@ symlink_dir() {
   echo "[ok]   $dst -> $src"
 }
 
-symlink_dir "skills"
-symlink_dir "agents"
-symlink_dir "commands"
-symlink_dir "docs"
+echo "--- skills ---"
+for item in "$REPO_DIR"/skills/*; do
+  symlink_item "skills/$(basename "$item")"
+done
+
+echo "--- agents ---"
+for item in "$REPO_DIR"/agents/*; do
+  symlink_item "agents/$(basename "$item")"
+done
+
+echo "--- commands ---"
+for item in "$REPO_DIR"/commands/*; do
+  symlink_item "commands/$(basename "$item")"
+done
+
+echo "--- docs ---"
+for item in "$REPO_DIR"/docs/*; do
+  symlink_item "docs/$(basename "$item")"
+done
 
 echo ""
 echo "==> Done. Skills, agents, commands, docs symlinked to ~/.config/opencode/"
