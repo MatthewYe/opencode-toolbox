@@ -1,0 +1,18 @@
+{
+  "name": "@MatthewYe/opencode-toolbox",
+  "version": "1.0.0",
+  "description": "OpenCode AFK development toolkit — skills, agents, commands for autonomous development workflow",
+  "type": "module",
+  "main": "./index.js",
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "skills/",
+    "agents/",
+    "commands/",
+    "docs/agents/"
+  ],
+  "dependencies": {
+    "gray-matter": "^4.0.3"
+  }
+}

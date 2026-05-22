@@ -16,18 +16,13 @@ AFK agent cluster for [opencode](https://github.com/anomalyco/opencode) — auto
 
 ## Install
 
-```bash
-./install.sh
+Add to your `opencode.json`:
+
+```json
+{ "plugin": ["@MatthewYe/opencode-toolbox"] }
 ```
 
-This creates symlinks from `~/.config/opencode/` to this repo for `skills/`, `agents/`, `commands/`, and `docs/`.
-
-Then merge the agent definitions from `opencode.jsonc.example` into your `~/.config/opencode/opencode.jsonc`:
-
-```bash
-# An agent can handle this for you — just ask:
-# "read opencode.jsonc.example and merge the agent block into my opencode.jsonc"
-```
+The plugin auto-registers skills, agents, and the `/afk` command. No symlinks or manual config merging needed.
 
 ## Usage
 
