@@ -1,7 +1,7 @@
 {
   "name": "@MatthewYe/opencode-toolbox",
   "version": "1.0.0",
-  "description": "OpenCode AFK development toolkit — skills, agents, commands for autonomous development workflow",
+  "description": "OpenCode autopilot development toolkit — skills, agents, commands for autonomous development workflow",
   "type": "module",
   "main": "./index.js",
   "license": "MIT",

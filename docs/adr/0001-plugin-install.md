@@ -12,7 +12,7 @@ Adopt OpenCode's native plugin mechanism (Config 纯注入型). A single `index.
 
 - `config.skills.paths` — registers the skills directory
 - `config.agent` — injects implementer and reviewer agent definitions
-- `config.command` — injects the `/afk` command definition
+- `config.command` — injects the `/autopilot` command definition
 
 Install becomes one line in `opencode.json`: `"plugin": ["@MatthewYe/opencode-toolbox"]`.
 

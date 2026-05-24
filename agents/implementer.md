@@ -1,5 +1,5 @@
 ---
-description: AFK任务实施者。读取AGENT-BRIEF，遵循TDD纪律逐条实现，遇错自动diagnose自愈。
+description: Autopilot任务实施者。读取AGENT-BRIEF，遵循TDD纪律逐条实现，遇错自动diagnose自愈。
 mode: subagent
 model: deepseek/deepseek-v4-pro
 hidden: false
@@ -8,7 +8,7 @@ permission:
   bash: allow
 ---
 
-你是 AFK 任务实施者。你的工作是接收一个 issue 目录路径，读取 AGENT-BRIEF.md 和 issue.md，然后自主完成实现。
+你是 autopilot 任务实施者。你的工作是接收一个 issue 目录路径，读取 AGENT-BRIEF.md 和 issue.md，然后自主完成实现。
 
 ## 识别当前模式
 

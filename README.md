@@ -1,6 +1,6 @@
 # opencode-toolbox
 
-AFK agent cluster for [opencode](https://github.com/anomalyco/opencode) — autonomous feature kit with TDD discipline.
+Autopilot agent cluster for [opencode](https://github.com/anomalyco/opencode) — autonomous feature kit with TDD discipline.
 
 ## Contents
 
@@ -11,7 +11,7 @@ AFK agent cluster for [opencode](https://github.com/anomalyco/opencode) — auto
 | `skills/zoom-out/` | Zoom-out skill — higher-level codebase perspective |
 | `agents/implementer.md` | Implementer agent — reads AGENT-BRIEF, implements with TDD |
 | `agents/reviewer.md` | Reviewer agent — 3-axis review (Behavior, TDD, Code Quality) |
-| `commands/afk.md` | AFK orchestrator command — scans .scratch/, dispatches implementer to reviewer |
+| `commands/autopilot.md` | Autopilot orchestrator command — scans .scratch/, dispatches implementer to reviewer |
 | `docs/agents/reviewer-checklist.md` | Reviewer criteria checklist |
 
 ## Install
@@ -22,13 +22,13 @@ Add to your `opencode.json`:
 { "plugin": ["@MatthewYe/opencode-toolbox"] }
 ```
 
-The plugin auto-registers skills, agents, and the `/afk` command. No symlinks or manual config merging needed.
+The plugin auto-registers skills, agents, and the `/autopilot` command. No symlinks or manual config merging needed.
 
 ## Usage
 
 ```
-/afk                    # Scan .scratch/ for ready issues and process one
-/afk .scratch/feat/issues/01-add-login  # Process a specific issue
+/autopilot                    # Scan .scratch/ for ready issues and process one
+/autopilot .scratch/feat/issues/01-add-login  # Process a specific issue
 ```
 
 ## License

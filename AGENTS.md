@@ -1,6 +1,6 @@
 # opencode-toolbox
 
-OpenCode plugin — skills, agents, commands, and docs that enable an AFK (autonomous) development workflow. Not a software project; no build, test, lint, or typecheck commands.
+OpenCode plugin — skills, agents, commands, and docs that enable an autopilot (autonomous) development workflow. Not a software project; no build, test, lint, or typecheck commands.
 
 ## Install
 
@@ -16,11 +16,11 @@ Or install from local path while developing:
 { "plugin": ["/path/to/opencode-toolbox"] }
 ```
 
-The plugin auto-registers skills, agents, and the `/afk` command. No symlinks or manual config merging needed.
+The plugin auto-registers skills, agents, and the `/autopilot` command. No symlinks or manual config merging needed.
 
-## AFK workflow
+## Autopilot workflow
 
-`/afk` scans `.scratch/*/issues/*.md` for `Status: ready-for-agent`, dispatches `implementer` → `reviewer`, retries up to 3 rounds. Pass a specific directory to process one: `/afk .scratch/feat/issues/01-add-login`.
+`/autopilot` scans `.scratch/*/issues/*.md` for `Status: ready-for-agent`, dispatches `implementer` → `reviewer`, retries up to 3 rounds. Pass a specific directory to process one: `/autopilot .scratch/feat/issues/01-add-login`.
 
 ### Issue structure
 

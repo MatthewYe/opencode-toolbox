@@ -1,6 +1,6 @@
 # Reviewer Checklist
 
-AFK issue 审查标准。reviewer agent 按此清单逐项检查 implementer 的产出。
+Autopilot issue 审查标准。reviewer agent 按此清单逐项检查 implementer 的产出。
 
 ## 维度一：Behavior 对齐
 

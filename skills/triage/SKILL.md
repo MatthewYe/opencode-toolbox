@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Triage issues through a state machine driven by triage roles. Use when user wants to create an issue, triage issues, review incoming bugs or feature requests, prepare issues for an AFK agent, or manage issue workflow.
+description: Triage issues through a state machine driven by triage roles. Use when user wants to create an issue, triage issues, review incoming bugs or feature requests, prepare issues for autopilot (autonomous) resolution, or manage issue workflow.
 ---
 
 # Triage
@@ -29,7 +29,7 @@ Five **state** roles:
 
 - `needs-triage` — maintainer needs to evaluate
 - `needs-info` — waiting on reporter for more information
-- `ready-for-agent` — fully specified, ready for an AFK agent
+- `ready-for-agent` — fully specified, ready for autonomous resolution
 - `ready-for-human` — needs human implementation
 - `wontfix` — will not be actioned
 
