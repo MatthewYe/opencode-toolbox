@@ -1,22 +1,44 @@
 # opencode-toolbox
 
-OpenCode plugin — skills, agents, commands, and docs that enable an autopilot (autonomous) development workflow. Not a software project; no build, test, lint, or typecheck commands.
+OpenCode plugin — skills, agents, commands, and docs for an autopilot (autonomous) development workflow. Published as `@MatthewYe/opencode-toolbox`.
 
-## Install
+## Quick start
 
-Add to your `opencode.json`:
+**Runtime**: Bun (not npm/node). `bun.lock` exists.
 
-```json
-{ "plugin": ["@MatthewYe/opencode-toolbox"] }
+```bash
+bun install           # install deps
+bun run build         # compile src/index.ts → dist/
+bun run dev           # watch mode
 ```
 
-Or install from local path while developing:
+Entry point (for npm consumers): `dist/index.js`. `dist/` is gitignored — must build before publish.
 
-```json
-{ "plugin": ["/path/to/opencode-toolbox"] }
+No test, lint, or typecheck commands exist. `tsconfig.json` is for editor support only.
+
+## Architecture
+
+The plugin reads `.md` files at runtime via `gray-matter` (YAML frontmatter), then injects them into OpenCode's config hook (`src/index.ts:65-91`):
+
+| Source dir | Injected as |
+|------------|-------------|
+| `agents/*.md` | `config.agent` (implementer, reviewer) |
+| `commands/*.md` | `config.command` (autopilot) |
+| `skills/` | `config.skills.paths` |
+| `upstream/skills/engineering/` | `config.skills.paths` |
+| `upstream/skills/productivity/` | `config.skills.paths` |
+
+Only skill paths need code-level registration. Agent/command registration is automatic from `.md` frontmatter.
+
+## Upstream skills (git subtree)
+
+`upstream/` is a squashed import of [mattpocock/skills](https://github.com/mattpocock/skills). To sync:
+
+```bash
+git subtree pull --prefix=upstream/ mattpocock-skills main --squash
 ```
 
-The plugin auto-registers skills, agents, and the `/autopilot` command. No symlinks or manual config merging needed.
+**Do not modify files in `upstream/` directly.** Changes will be clobbered on next sync. Local skills go in `skills/` (e.g., `skill-creator/`, `opencode-plugin-scaffold/`).
 
 ## Autopilot workflow
 
@@ -66,16 +88,18 @@ Required by both agents (loaded from `skills/tdd/`):
 
 Max 3 rounds (first + 2 retries). If RETRY on round 3 → issue goes to `needs-info` for human.
 
-## Agent skills
+## Agent skills context
 
-### Issue tracker
+- **Issue tracker**: GitHub Issues on `MatthewYe/opencode-toolbox`. (See `docs/agents/issue-tracker.md`.)
+- **Triage labels**: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. (See `docs/agents/triage-labels.md`.)
+- **Domain docs**: `CONTEXT.md` + `docs/adr/` — these apply to the *consuming* repo (where the plugin is installed), not to opencode-toolbox itself. This repo has no root-level `CONTEXT.md`; only `upstream/CONTEXT.md` exists.
 
-GitHub Issues on `MatthewYe/opencode-toolbox`. See `docs/agents/issue-tracker.md`.
+## Install
 
-### Triage labels
+Add to your `opencode.json`:
 
-Default canonical labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+```json
+{ "plugin": ["@MatthewYe/opencode-toolbox"] }
+```
 
-### Domain docs
-
-Single-context: `CONTEXT.md` + `docs/adr/` at repo root. See `docs/agents/domain.md`.
+Or from local path: `{ "plugin": ["/path/to/opencode-toolbox"] }`.
