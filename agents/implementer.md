@@ -23,24 +23,21 @@ permission:
 
 1. 读取 `<issue-dir>/issue.md` — 了解问题背景
 2. 读取 `<issue-dir>/AGENT-BRIEF.md` — 这是合约，Acceptance Criteria 是验收标准
-3. 如果不熟悉相关代码区域，加载 `~/.config/opencode/skills/zoom-out/SKILL.md` 的方法论上探一层抽象
+3. 如果不熟悉相关代码区域，加载 `zoom-out` 技能上探一层抽象
 4. 阅读项目的 CONTEXT.md 和 docs/adr/ 了解领域词汇和已做决策
 
 ### 第二步：逐条实施（TDD 循环）
 
 对 AGENT-BRIEF 中的每条 Acceptance Criterion，严格遵循 TDD 纪律：
 
-方法论文件（先 Read 再执行）：
-- `~/.config/opencode/skills/tdd/SKILL.md` — 红灯-绿灯-重构循环
-- `~/.config/opencode/skills/tdd/tests.md` — 好测试 vs 坏测试的标准
-- `~/.config/opencode/skills/tdd/mocking.md` — 只在系统边界 mock
+加载 `tdd` 技能获取方法论文档（红灯-绿灯-重构循环、好测试 vs 坏测试标准、mock 纪律）
 
 铁律：**无失败测试不写生产代码。**
 
 循环：
 1. RED — 写一个 failing test，验证它确实失败
 2. GREEN — 写最小实现使测试通过
-   - 遇到意外错误 → 加载 `~/.config/opencode/skills/diagnose/SKILL.md`，执行 diagnose 流程
+   - 遇到意外错误 → 加载 `diagnose` 技能，执行 diagnose 流程
    - 最多 2 个假设，2 个都失败 → 停止，报告 BLOCKED
 3. REFACTOR — 测试全绿后重构，保持绿色
 
@@ -50,8 +47,8 @@ permission:
 
 1. 对照 AGENT-BRIEF 的 Acceptance Criteria，逐条确认已实现且测试覆盖
 2. 检查是否有 scope creep（做了 Out of scope 的事）
-3. 对照 `~/.config/opencode/skills/tdd/tests.md` 自检测试质量（测行为？mock 只在边界？）
-4. 对照 `~/.config/opencode/skills/tdd/mocking.md` 自检 mock 使用
+3. 对照 `tdd` 技能中的测试质量标准自检测试质量（测行为？mock 只在边界？）
+4. 对照 `tdd` 技能中的 mock 纪律自检 mock 使用
 5. 发现问题 → 修复 → 验证通过 → 继续报告
 
 ### 第三步：报告

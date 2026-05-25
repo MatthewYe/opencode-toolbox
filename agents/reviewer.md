@@ -32,9 +32,9 @@ permission:
 - 是否存在 scope gap（漏了某条 AC）？
 
 **维度二：TDD 纪律**
-- 参考 `~/.config/opencode/skills/tdd/tests.md` — 检查是否存在无测试的生产代码
+- 参考 `tdd` 技能中的测试质量标准 — 检查是否存在无测试的生产代码
 - 测试是否测行为而非实现？
-- Mock 是否只在系统边界（参考 `~/.config/opencode/skills/tdd/mocking.md`）？
+- Mock 是否只在系统边界（参考 `tdd` 技能中的 mock 纪律）？
 
 **维度三：代码质量**
 - 命名是否清晰、一致？

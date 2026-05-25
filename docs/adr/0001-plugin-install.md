@@ -27,4 +27,4 @@ Install becomes one line in `opencode.json`: `"plugin": ["@MatthewYe/opencode-to
 - `install.sh` and `opencode.jsonc.example` removed permanently
 - Project now requires `gray-matter` dependency for YAML frontmatter parsing
 - Agent definitions no longer duplicated between markdown files and `opencode.jsonc`
-- Skills paths hardcoded in agent `.md` files (e.g., `~/.config/opencode/skills/tdd/`) still reference old paths — needs separate follow-up
+- Skills paths in agent `.md` files reference skill names (loaded via `skill` tool), no hardcoded paths
