@@ -6,9 +6,9 @@ Autopilot agent cluster for [opencode](https://github.com/anomalyco/opencode) �
 
 | Path | What |
 |------|------|
-| `skills/tdd/` | TDD skill — red-green-refactor loop, tests guide, mocking guide |
-| `skills/diagnose/` | Diagnose skill — disciplined bug diagnosis loop |
-| `skills/zoom-out/` | Zoom-out skill — higher-level codebase perspective |
+| `skills/skill-creator/` | Skill creator — create and improve agent skills |
+| `upstream/skills/engineering/` | Engineering skills (tdd, diagnose, triage, etc.) — synced from mattpocock/skills |
+| `upstream/skills/productivity/` | Productivity skills (caveman, grill-me, etc.) — synced from mattpocock/skills |
 | `agents/implementer.md` | Implementer agent — reads AGENT-BRIEF, implements with TDD |
 | `agents/reviewer.md` | Reviewer agent — 3-axis review (Behavior, TDD, Code Quality) |
 | `commands/autopilot.md` | Autopilot orchestrator command — scans .scratch/, dispatches implementer to reviewer |

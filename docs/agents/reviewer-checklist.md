@@ -13,7 +13,7 @@ Autopilot issue 审查标准。reviewer agent 按此清单逐项检查 implement
 
 ## 维度二：TDD 纪律
 
-参考 `~/.config/opencode/skills/tdd/`：
+参考 `tdd` 技能中的测试质量标准：
 
 - [ ] 是否存在没有对应 failing test 的生产代码？
 - [ ] 测试是否通过公共接口验证行为，而非测试内部实现细节？
