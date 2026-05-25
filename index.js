@@ -45,6 +45,8 @@ function buildCommandConfigs(raw) {
 
 export const OpenCodeToolbox = async ({ client, directory }) => {
   const skillsDir = path.resolve(__dirname, 'skills');
+  const upstreamEngDir = path.resolve(__dirname, 'upstream', 'skills', 'engineering');
+  const upstreamProdDir = path.resolve(__dirname, 'upstream', 'skills', 'productivity');
   const agentsRaw = readMarkdownConfigs(path.resolve(__dirname, 'agents'));
   const commandsRaw = readMarkdownConfigs(path.resolve(__dirname, 'commands'));
 
@@ -55,8 +57,11 @@ export const OpenCodeToolbox = async ({ client, directory }) => {
     config: async (config) => {
       config.skills = config.skills || {};
       config.skills.paths = config.skills.paths || [];
-      if (!config.skills.paths.includes(skillsDir)) {
-        config.skills.paths.push(skillsDir);
+      const skillPaths = [skillsDir, upstreamEngDir, upstreamProdDir];
+      for (const p of skillPaths) {
+        if (!config.skills.paths.includes(p)) {
+          config.skills.paths.push(p);
+        }
       }
 
       config.agent = { ...(config.agent ?? {}), ...agentConfigs };

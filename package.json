@@ -8,6 +8,7 @@
   "files": [
     "index.js",
     "skills/",
+    "upstream/skills/",
     "agents/",
     "commands/",
     "docs/agents/"
