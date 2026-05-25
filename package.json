@@ -3,17 +3,28 @@
   "version": "1.0.0",
   "description": "OpenCode autopilot development toolkit — skills, agents, commands for autonomous development workflow",
   "type": "module",
-  "main": "./index.js",
+  "main": "./dist/index.js",
   "license": "MIT",
   "files": [
-    "index.js",
+    "dist/",
+    "src/",
     "skills/",
     "upstream/skills/",
     "agents/",
     "commands/",
     "docs/agents/"
   ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "dev": "bun run --watch src/index.ts"
+  },
   "dependencies": {
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "@opencode-ai/plugin": "latest"
+  },
+  "devDependencies": {
+    "@tsconfig/node22": "latest",
+    "@types/node": "latest",
+    "typescript": "latest"
   }
 }

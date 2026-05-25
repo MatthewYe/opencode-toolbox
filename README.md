@@ -7,6 +7,7 @@ Autopilot agent cluster for [opencode](https://github.com/anomalyco/opencode) �
 | Path | What |
 |------|------|
 | `skills/skill-creator/` | Skill creator — create and improve agent skills |
+| `skills/opencode-plugin-scaffold/` | Plugin scaffold — create or fix OpenCode plugins |
 | `upstream/skills/engineering/` | Engineering skills (tdd, diagnose, triage, etc.) — synced from mattpocock/skills |
 | `upstream/skills/productivity/` | Productivity skills (caveman, grill-me, etc.) — synced from mattpocock/skills |
 | `agents/implementer.md` | Implementer agent — reads AGENT-BRIEF, implements with TDD |
