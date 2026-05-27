@@ -54,7 +54,7 @@ REVIEWER_REPORT:
 ## Critical（必须修复，否则不可交付）
 - [ ] 问题描述
 
-## Important（应修复，但不阻塞交付）
+## Important（必须修复，不可交付）
 - [ ] 问题描述
 
 ## Suggestion（可忽略）
