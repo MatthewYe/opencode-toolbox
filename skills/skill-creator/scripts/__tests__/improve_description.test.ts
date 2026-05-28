@@ -11,6 +11,7 @@ import {
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
+import type { EvalResults } from "../improve_description";
 
 const SCRIPTS_DIR = join(import.meta.dir, "..");
 
@@ -290,7 +291,7 @@ describe("improveDescription", () => {
     improveDescription = mod.improveDescription;
   });
 
-  const evalResults = {
+  const evalResults: EvalResults = {
     skill_name: "test-skill",
     description: "A test skill description",
     results: [
@@ -443,10 +444,10 @@ describe("improveDescription — 1024-char safety net", () => {
     improveDescription = mod.improveDescription;
   });
 
-  const evalResults = {
+  const evalResults: EvalResults = {
     skill_name: "test-skill",
     description: "A test skill description",
-    results: [] as Array<Record<string, unknown>>,
+    results: [],
     summary: { total: 1, passed: 0, failed: 1 },
   };
 
@@ -534,7 +535,7 @@ describe("improveDescription — logging", () => {
     improveDescription = mod.improveDescription;
   });
 
-  const evalResults = {
+  const evalResults: EvalResults = {
     skill_name: "test-skill",
     description: "A test skill description",
     results: [

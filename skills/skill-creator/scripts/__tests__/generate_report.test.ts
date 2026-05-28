@@ -4,13 +4,14 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { generateHtml } from "../generate_report";
+import type { LoopData } from "../generate_report";
 
 const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 const SCRIPTS_DIR = join(import.meta.dir, "..");
 
-function loadFixture(name: string): Record<string, unknown> {
+function loadFixture(name: string): LoopData {
   const raw = readFileSync(join(FIXTURES_DIR, name), "utf-8");
-  return JSON.parse(raw);
+  return JSON.parse(raw) as LoopData;
 }
 
 // --- Cycle 1: Tracer bullet — basic output structure ---
