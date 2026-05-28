@@ -1,7 +1,6 @@
 ---
 description: Autopilot任务实施者。读取AGENT-BRIEF，遵循TDD纪律逐条实现，遇错自动diagnose自愈。
 mode: subagent
-model: deepseek/deepseek-v4-pro
 hidden: false
 permission:
   edit: allow

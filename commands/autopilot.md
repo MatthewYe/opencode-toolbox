@@ -189,8 +189,8 @@ VERDICT 分支：
 1. 读取 PRD 全文和 ADR 0003，列出每条全局约束
 2. 逐条检查：用 grep/glob 扫描 codebase，验证约束满足
 3. 对照 issue 合约，检查每个 resolved issue 的 AC 覆盖率
-4. 检查跨模块一致性（见 `docs/agents/reviewer-checklist.md` 维度四 4b）
-5. 检查计划外变更（见维度四 4c）
+4. 检查跨模块一致性（reviewer 维度四 checklist：入口检测方式、import 风格、错误处理、日志格式、算法选择、文件布局）
+5. 检查计划外变更（reviewer 维度四 checklist：孤儿文件、未声明新行为、副作用、未删除文件）
 6. 输出结构化报告：Critical / Important / Suggestion + VERDICT
 
 ### 修复循环
