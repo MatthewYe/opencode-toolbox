@@ -98,9 +98,18 @@ REVIEWER_REPORT:
 
 ## Suggestion（可忽略）
 - [ ] 建议描述
+  KEYWORDS: keyword1, keyword2, keyword3
+  FILES: path/to/file1.ts, path/to/file2.ts
 
 VERDICT: MERGE | RETRY | BLOCKED
 ```
+
+每条 Suggestion 可附带以下可选标注（各占一行，缩进 2 空格，逗号分隔）：
+
+- `KEYWORDS:` — 2-5 个核心关键词，用于下游 issue 匹配。从建议中提取最能代表其关注点的术语。
+- `FILES:` — 受影响或相关的文件路径，用于下游 issue 的文件路径交集匹配。
+
+如果建议适用于多个文件或关注面，**务必标注 KEYWORDS 和 FILES**，确保建议能在后续 issue 中被正确匹配和传递。标注缺失时，orchestrator 会从建议文本和 CHANGED_FILES 中自动抽取兜底，但人工标注更精确。
 
 #### 分级标准
 
