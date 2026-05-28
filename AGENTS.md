@@ -55,7 +55,7 @@ git subtree pull --prefix=upstream/ mattpocock-skills main --squash
 ### Agents
 
 - **implementer** — Reads AGENT-BRIEF, executes TDD per AC, self-reviews, outputs `IMPLEMENTER_REPORT:`. Retry mode skips self-review, fixes only Critical issues.
-- **reviewer** — Read-only, no bash/edit. 3-axis review (Behavior alignment, TDD discipline, Code quality) against `docs/agents/reviewer-checklist.md`. Outputs `REVIEWER_REPORT:` with VERDICT: MERGE/RETRY/BLOCKED.
+- **reviewer** — Read-only, no bash/edit. 4-axis review (Behavior alignment, TDD discipline, Code quality, Plan fidelity & cross-module consistency) with inline checklist. Outputs `REVIEWER_REPORT:` with VERDICT: MERGE/RETRY/BLOCKED.
 
 ### Structured output formats
 
