@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
 import { calculateStats, aggregateResults, generateMarkdown } from "../aggregate_benchmark";
+import type { Benchmark, BenchmarkRun } from "../aggregate_benchmark";
 
 const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 const SCRIPTS_DIR = join(import.meta.dir, "..");
@@ -60,19 +61,19 @@ describe("calculateStats", () => {
 
 describe("aggregateResults", () => {
   it("returns empty summaries for configs with no runs", () => {
-    const result = aggregateResults({ with_skill: [], without_skill: [] });
+    const result: Record<string, any> = aggregateResults({ with_skill: [], without_skill: [] });
     expect(result.with_skill.pass_rate).toEqual({ mean: 0, stddev: 0, min: 0, max: 0 });
     expect(result.without_skill.pass_rate).toEqual({ mean: 0, stddev: 0, min: 0, max: 0 });
   });
 
   it("returns delta of 0 delta fields when no runs", () => {
-    const result = aggregateResults({ with_skill: [], without_skill: [] });
+    const result: Record<string, any> = aggregateResults({ with_skill: [], without_skill: [] });
     expect(result.delta).toBeDefined();
     expect(result.delta.pass_rate).toBe("+0.00");
   });
 
   it("computes summary stats from run results", () => {
-    const results = {
+    const results: Record<string, any[]> = {
       with_skill: [
         { pass_rate: 0.85, time_seconds: 45.2, tokens: 2500 },
         { pass_rate: 0.90, time_seconds: 38.7, tokens: 2100 },
@@ -82,7 +83,7 @@ describe("aggregateResults", () => {
         { pass_rate: 0.60, time_seconds: 58.3, tokens: 3200 },
       ],
     };
-    const summary = aggregateResults(results);
+    const summary: Record<string, any> = aggregateResults(results);
 
     // with_skill stats
     expect(summary.with_skill.pass_rate.mean).toBe(0.875);
@@ -101,20 +102,20 @@ describe("aggregateResults", () => {
   });
 
   it("handles single config (no baseline/delta)", () => {
-    const results = {
+    const results: Record<string, any[]> = {
       with_skill: [{ pass_rate: 0.80, time_seconds: 30.0, tokens: 1000 }],
     };
-    const summary = aggregateResults(results);
+    const summary: Record<string, any> = aggregateResults(results);
     expect(summary.with_skill.pass_rate.mean).toBe(0.80);
     expect(summary.delta).toBeDefined();
   });
 
   it("handles token field defaults to 0", () => {
-    const results = {
+    const results: Record<string, any[]> = {
       with_skill: [{ pass_rate: 0.70, time_seconds: 20.0 }],
       without_skill: [{ pass_rate: 0.50, time_seconds: 25.0, tokens: 100 }],
     };
-    const summary = aggregateResults(results);
+    const summary: Record<string, any> = aggregateResults(results);
     expect(summary.with_skill.tokens.mean).toBe(0);
     expect(summary.without_skill.tokens.mean).toBe(100);
   });
@@ -164,7 +165,9 @@ describe("generateMarkdown", () => {
     const benchmark = {
       metadata: {
         skill_name: "test",
+        skill_path: "",
         executor_model: "claude",
+        analyzer_model: "claude",
         timestamp: "2026-01-15T10:30:00Z",
         evals_run: [1],
         runs_per_configuration: 2,
@@ -184,7 +187,7 @@ describe("generateMarkdown", () => {
         delta: { pass_rate: "+0.40", time_seconds: "-30.0", tokens: "-500" },
       },
       notes: [],
-    };
+    } satisfies Benchmark;
     const md = generateMarkdown(benchmark);
 
     // Config names should be transformed: new_skill → New Skill, old_skill → Old Skill
@@ -204,7 +207,9 @@ describe("generateMarkdown", () => {
     const benchmark = {
       metadata: {
         skill_name: "test",
+        skill_path: "",
         executor_model: "claude",
+        analyzer_model: "claude",
         timestamp: "2026-01-15T10:30:00Z",
         evals_run: [1],
         runs_per_configuration: 1,
@@ -219,7 +224,7 @@ describe("generateMarkdown", () => {
         delta: {},
       },
       notes: ["Note one", "Note two"],
-    };
+    } satisfies Benchmark;
     const md = generateMarkdown(benchmark);
 
     expect(md).toContain("## Notes");
@@ -231,7 +236,9 @@ describe("generateMarkdown", () => {
     const benchmark = {
       metadata: {
         skill_name: "test",
+        skill_path: "",
         executor_model: "claude",
+        analyzer_model: "claude",
         timestamp: "2026-01-15T10:30:00Z",
         evals_run: [1],
         runs_per_configuration: 1,
@@ -246,7 +253,7 @@ describe("generateMarkdown", () => {
         delta: {},
       },
       notes: [],
-    };
+    } satisfies Benchmark;
     const md = generateMarkdown(benchmark);
 
     expect(md).not.toContain("## Notes");
@@ -278,11 +285,11 @@ describe("generateBenchmark (workspace layout)", () => {
     expect(rs.delta).toBeDefined();
 
     // with_skill: pass_rate mean = (0.85 + 0.90) / 2 = 0.875
-    expect(rs.with_skill.pass_rate.mean).toBe(0.875);
+    expect((rs.with_skill as any).pass_rate.mean).toBe(0.875);
     // without_skill: pass_rate mean = (0.55 + 0.60) / 2 = 0.575
-    expect(rs.without_skill.pass_rate.mean).toBe(0.575);
+    expect((rs.without_skill as any).pass_rate.mean).toBe(0.575);
     // delta: 0.875 - 0.575 = +0.30
-    expect(rs.delta.pass_rate).toBe("+0.30");
+    expect((rs.delta as any).pass_rate).toBe("+0.30");
   });
 
   it("extracts expectations and notes from grading.json", async () => {
@@ -293,21 +300,22 @@ describe("generateBenchmark (workspace layout)", () => {
 
     // First run should have expectations and notes
     const firstWithSkill = benchmark.runs.find(
-      (r: any) => r.configuration === "with_skill" && r.run_number === 1,
+      (r: BenchmarkRun) => r.configuration === "with_skill" && r.run_number === 1,
     );
     expect(firstWithSkill).toBeDefined();
-    expect(firstWithSkill.expectations.length).toBe(2);
-    expect(firstWithSkill.notes.length).toBeGreaterThan(0);
+    const fws = firstWithSkill!;
+    expect(fws.expectations.length).toBe(2);
+    expect(fws.notes.length).toBeGreaterThan(0);
 
     // Run result fields
-    expect(firstWithSkill.result.pass_rate).toBe(0.85);
-    expect(firstWithSkill.result.passed).toBe(17);
-    expect(firstWithSkill.result.failed).toBe(3);
-    expect(firstWithSkill.result.total).toBe(20);
-    expect(firstWithSkill.result.time_seconds).toBe(45.2);
-    expect(firstWithSkill.result.tokens).toBe(2500);
-    expect(firstWithSkill.result.tool_calls).toBe(8);
-    expect(firstWithSkill.result.errors).toBe(1);
+    expect(fws.result.pass_rate).toBe(0.85);
+    expect(fws.result.passed).toBe(17);
+    expect(fws.result.failed).toBe(3);
+    expect(fws.result.total).toBe(20);
+    expect(fws.result.time_seconds).toBe(45.2);
+    expect(fws.result.tokens).toBe(2500);
+    expect(fws.result.tool_calls).toBe(8);
+    expect(fws.result.errors).toBe(1);
   });
 
   it("uses eval_id from eval_metadata.json when available", async () => {
@@ -334,12 +342,12 @@ describe("generateBenchmark (legacy layout)", () => {
 
     expect(benchmark.runs.length).toBe(2); // 1 with_skill + 1 without_skill
 
-    const ws = benchmark.run_summary.with_skill;
-    const wos = benchmark.run_summary.without_skill;
+    const ws = benchmark.run_summary.with_skill as Record<string, any>;
+    const wos = benchmark.run_summary.without_skill as Record<string, any>;
 
     expect(ws.pass_rate.mean).toBe(0.75);
     expect(wos.pass_rate.mean).toBe(0.40);
-    expect(benchmark.run_summary.delta.pass_rate).toBe("+0.35");
+    expect((benchmark.run_summary.delta as any).pass_rate).toBe("+0.35");
   });
 });
 

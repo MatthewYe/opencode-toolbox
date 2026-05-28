@@ -876,7 +876,7 @@ describe("API endpoints", () => {
       const resp = await fetch(`http://127.0.0.1:${port}/api/feedback`);
       expect(resp.status).toBe(200);
 
-      const data = await resp.json();
+      const data = await resp.json() as { reviews: Array<{ feedback: string }> };
       expect(data.reviews).toHaveLength(1);
       expect(data.reviews[0].feedback).toBe("nice work");
 
@@ -908,7 +908,7 @@ describe("API endpoints", () => {
       });
       expect(resp.status).toBe(200);
 
-      const data = await resp.json();
+      const data = await resp.json() as { ok: boolean };
       expect(data.ok).toBe(true);
 
       // Verify file was written
@@ -943,7 +943,7 @@ describe("API endpoints", () => {
       });
       expect(resp.status).toBe(500);
 
-      const data = await resp.json();
+      const data = await resp.json() as { error?: string };
       expect(data.error).toBeDefined();
 
       server.close();

@@ -42,7 +42,7 @@ interface HistoryEntry {
   results: QueryResult[];
 }
 
-interface LoopData {
+export interface LoopData {
   original_description: string;
   best_description: string;
   best_score: string;
