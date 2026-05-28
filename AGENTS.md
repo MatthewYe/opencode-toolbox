@@ -1,6 +1,6 @@
 # opencode-toolbox
 
-OpenCode plugin — skills, agents, commands, and docs for an autopilot (autonomous) development workflow. Published as `@MatthewYe/opencode-toolbox`.
+OpenCode plugin — skills, agents, commands, and docs for an autopilot (autonomous) development workflow. Published as `@matthewye/opencode-toolbox`.
 
 ## Quick start
 
@@ -99,7 +99,7 @@ Max 3 rounds (first + 2 retries). If RETRY on round 3 → issue goes to `needs-i
 Add to your `opencode.json`:
 
 ```json
-{ "plugin": ["@MatthewYe/opencode-toolbox"] }
+{ "plugin": ["@matthewye/opencode-toolbox"] }
 ```
 
 Or from local path: `{ "plugin": ["/path/to/opencode-toolbox"] }`.

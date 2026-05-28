@@ -1,6 +1,5 @@
 # opencode-toolbox
 
-[![npm version](https://img.shields.io/npm/v/@MatthewYe/opencode-toolbox)](https://www.npmjs.com/package/@MatthewYe/opencode-toolbox)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Runtime: Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?logo=bun)](https://bun.sh)
 
@@ -29,28 +28,41 @@ Built on top of [mattpocock/skills](https://github.com/mattpocock/skills) and ex
 ## Prerequisites
 
 - [OpenCode](https://github.com/anomalyco/opencode) CLI installed
-- [Bun](https://bun.sh) (for local plugin development; not needed for consumption via npm)
+- [Bun](https://bun.sh) (required — OpenCode uses Bun internally to install and run plugins)
 - Familiarity with the `.scratch/` issue structure (see [AGENTS.md](AGENTS.md))
 
 ## Install
 
-Add to your `opencode.json` or `opencode.jsonc`:
-
-```json
-{ "plugin": ["@MatthewYe/opencode-toolbox"] }
+```bash
+git clone https://github.com/MatthewYe/opencode-toolbox.git
+cd opencode-toolbox && bun install && bun run build
 ```
 
-Or from a local path:
+Then add the local path to your project's `opencode.json` or `opencode.jsonc` (project root for project-level config, `~/.config/opencode/opencode.json` for global config):
 
 ```json
 { "plugin": ["/path/to/opencode-toolbox"] }
 ```
 
-The plugin auto-registers skills, agents, and the `/autopilot` command. No symlinks or manual config merging needed.
+The plugin auto-registers skills, agents, and the `/autopilot` command.
+
+### Verify
+
+After starting OpenCode, confirm these two signals:
+
+1. Type `/aut` — you should see `/autopilot` in command completions
+2. Ask "list available skills" — you should see `tdd`, `diagnose`, `triage`, etc.
 
 ## Getting Started in 5 Minutes
 
-Here's the full pipeline — idea to ready-for-agent — using the skills bundled in this toolbox:
+First, initialize engineering skill context:
+
+```bash
+# 0. Setup — configure issue tracker, triage labels, etc. Required by all engineering skills.
+/setup-matt-pocock-skills
+```
+
+Here's the full pipeline — idea to ready-for-agent:
 
 ```bash
 # 1. Grill — stress-test your idea against domain docs and decisions

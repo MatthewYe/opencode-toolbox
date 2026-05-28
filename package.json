@@ -1,5 +1,5 @@
 {
-  "name": "@MatthewYe/opencode-toolbox",
+  "name": "@matthewye/opencode-toolbox",
   "version": "1.0.0",
   "description": "OpenCode autopilot development toolkit — skills, agents, commands for autonomous development workflow",
   "type": "module",

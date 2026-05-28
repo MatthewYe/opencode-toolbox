@@ -1,6 +1,5 @@
 # opencode-toolbox
 
-[![npm version](https://img.shields.io/npm/v/@MatthewYe/opencode-toolbox)](https://www.npmjs.com/package/@MatthewYe/opencode-toolbox)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Runtime: Bun](https://img.shields.io/badge/runtime-Bun-f9f1e1?logo=bun)](https://bun.sh)
 
@@ -29,28 +28,41 @@ OpenCode 很强大，但开箱即用只是单轮助手 —— 你提问、它回
 ## 前置条件
 
 - 已安装 [OpenCode](https://github.com/anomalyco/opencode) CLI
-- [Bun](https://bun.sh)（本地插件开发需要；通过 npm 消费则不需要）
+- [Bun](https://bun.sh)（OpenCode 内部使用 Bun 安装和运行插件，必须安装）
 - 熟悉 `.scratch/` issue 目录结构（详见 [AGENTS.md](AGENTS.md)）
 
 ## 安装
 
-添加到你的 `opencode.json` 或 `opencode.jsonc`：
-
-```json
-{ "plugin": ["@MatthewYe/opencode-toolbox"] }
+```bash
+git clone https://github.com/MatthewYe/opencode-toolbox.git
+cd opencode-toolbox && bun install && bun run build
 ```
 
-或使用本地路径：
+然后在你项目的 `opencode.json` 或 `opencode.jsonc` 中添加本地路径（项目根目录为项目级配置，`~/.config/opencode/opencode.json` 为全局配置）：
 
 ```json
 { "plugin": ["/path/to/opencode-toolbox"] }
 ```
 
-插件自动注册 skills、agents 和 `/autopilot` 命令。无需 symlink 或手动合并配置。
+插件自动注册 skills、agents 和 `/autopilot` 命令。
+
+### 验证安装
+
+启动 OpenCode，确认以下两个信号：
+
+1. 输入 `/aut` 能看到 `/autopilot` 命令补全
+2. 问 "列出当前可用的 skills"，应出现 `tdd`、`diagnose`、`triage` 等
 
 ## 五分钟上手
 
-完整流水线 —— 从想法到 ready-for-agent —— 使用本工具箱内置的技能：
+首先初始化工程技能的上下文：
+
+```bash
+# 0. 初始化 —— 配置 issue tracker、triage 标签等，所有工程技能的运行前提
+/setup-matt-pocock-skills
+```
+
+完整流水线 —— 从想法到 ready-for-agent：
 
 ```bash
 # 1. 拷问 —— 对照领域文档和决策记录，压力测试你的想法
