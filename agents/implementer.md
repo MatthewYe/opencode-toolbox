@@ -23,6 +23,17 @@ orchestrator 会传入任务信息，可能来自两个来源：
 - **本地 `.scratch/` issue**：传入 `issue_dir` 路径。合约在 `<issue_dir>/AGENT-BRIEF.md`，背景在 `<issue_dir>/issue.md`。
 - **GitHub Issue**：传入 `IS_GITHUB: true` + 合约文本（从 issue body 提取的 AC 和 What to build）。没有 AGENT-BRIEF.md 文件，合约内容由 orchestrator 直接传入。
 
+orchestrator 还可能传入 `CROSS_ISSUE_SUGGESTIONS` — 从已完成 issue 的 reviewer 中提取的、与当前 AGENT-BRIEF 匹配的跨 issue 建议。格式为 JSON 数组，每条包含：
+
+- `source_issue`：来源 issue 标识（如 `#18` 或 `01-login`）
+- `round`：reviewer 轮次
+- `content`：建议正文
+- `files`：影响的文件路径
+- `keywords`：匹配关键词
+- `reviewer_context`：原 `REVIEWER_REPORT` 中该 Suggestion 条目的全文摘录（含 KEYWORDS/FILES 标注行）
+
+在实现过程中，应考虑这些建议是否适用于当前 issue。处理结果通过报告的 `SUGGESTION_RESOLUTIONS` 段声明。
+
 ## 识别当前模式
 
 首先检查 orchestrator 是否传入了 `ROUND:` 和 `PREV_REVIEW:` 信息：
@@ -62,7 +73,8 @@ orchestrator 会传入任务信息，可能来自两个来源：
 2. 检查是否有 scope creep（做了 Out of scope 的事）
 3. 对照 `tdd` 技能中的测试质量标准自检测试质量（测行为？mock 只在边界？）
 4. 对照 `tdd` 技能中的 mock 纪律自检 mock 使用
-5. 发现问题 → 修复 → 验证通过 → 继续报告
+5. 如有 `CROSS_ISSUE_SUGGESTIONS`，逐条评估适用性并在报告的 `SUGGESTION_RESOLUTIONS` 段声明处理结果
+6. 发现问题 → 修复 → 验证通过 → 继续报告
 
 ### 第三步：报告
 
@@ -73,6 +85,9 @@ ROUND: 首次实现写 0，retry 时 orchestrator 会指定
 IMPLEMENTER_REPORT:
 ROUND: <N>
 STATUS: DONE | BLOCKED | NEEDS_CONTEXT
+SUGGESTION_RESOLUTIONS:
+- [resolved|rejected|deferred] 来源 <issue-slug> round <N>: <content> → <处理说明>
+- 无匹配的 CROSS_ISSUE_SUGGESTIONS 时写 "无"
 SELF_REVIEW:
 - 发现: <问题描述> → 已修复
 - 无问题
@@ -80,6 +95,20 @@ CHANGED_FILES:
 - path/to/file (简要说明改了什么)
 SUMMARY: 一句话总结
 ```
+
+#### SUGGESTION_RESOLUTIONS 处理规则
+
+收到 `CROSS_ISSUE_SUGGESTIONS` 后，对每条 suggestion 声明处理结果：
+
+| 状态 | 含义 | 使用场景 |
+|------|------|---------|
+| `resolved` | 已采纳并实现 | suggestion 适用于当前 issue 且已纳入实现 |
+| `rejected` | 不采纳 | suggestion 不适用于当前 issue（不相关、已过时、方向冲突） |
+| `deferred` | 暂不处理 | suggestion 有价值但超出当前 issue scope，留给后续 issue |
+
+每条格式：`[resolved|rejected|deferred] 来源 <issue-slug> round <N>: <content 摘要> → <处理说明>`
+
+无 `CROSS_ISSUE_SUGGESTIONS` 传入时，`SUGGESTION_RESOLUTIONS` 写 "无"。
 
 ### 状态说明
 
