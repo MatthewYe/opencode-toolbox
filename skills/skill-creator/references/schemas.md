@@ -108,7 +108,7 @@ Wall clock timing for a run. Located at `<run-dir>/timing.json`.
 
 ## benchmark.json
 
-Output from aggregate_benchmark.py. Located at `<workspace>/iteration-N/benchmark.json`.
+Output from aggregate_benchmark.ts. Located at `<workspace>/iteration-N/benchmark.json`.
 
 ```json
 {

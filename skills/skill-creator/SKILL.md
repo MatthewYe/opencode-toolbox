@@ -15,7 +15,7 @@ At a high level, the process of creating a skill goes like this:
 - Create a few test prompts and run the agent with access to the skill on them
 - Help the user evaluate the results both qualitatively and quantitatively
   - While the runs happen in the background, draft some quantitative evals if there aren't any. Explain them to the user.
-  - Use `eval-viewer/generate_review.py` to show the user the results, and let them review both qualitative and quantitative metrics
+  - Use `bun run skills/skill-creator/eval-viewer/generate_review.ts` to show the user the results, and let them review both qualitative and quantitative metrics
 - Rewrite the skill based on feedback from the user's evaluation of the results
 - Repeat until you're satisfied
 - Expand the test set and try again at larger scale
@@ -234,7 +234,7 @@ Once all runs are done:
 
 2. **Aggregate into benchmark** — run the aggregation script:
    ```bash
-   uv run python -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name>
+    bun run skills/skill-creator/scripts/aggregate_benchmark.ts <workspace>/iteration-N --skill-name <name>
    ```
     This produces `benchmark.json` and `benchmark.md` with pass_rate, time, and tokens for each configuration, with mean ± stddev and the delta. See [references/schemas.md](references/schemas.md) for exact schema.
 Put each with_skill version before its baseline counterpart.
@@ -243,7 +243,7 @@ Put each with_skill version before its baseline counterpart.
 
 4. **Launch the viewer** with both qualitative outputs and quantitative data:
    ```bash
-   nohup uv run python eval-viewer/generate_review.py \
+    nohup bun run skills/skill-creator/eval-viewer/generate_review.ts \
      <workspace>/iteration-N \
      --skill-name "my-skill" \
      --benchmark <workspace>/iteration-N/benchmark.json \
@@ -303,7 +303,7 @@ kill $VIEWER_PID 2>/dev/null
 
 3. **Explain the why.** Try hard to explain the **why** behind everything you're asking the model to do. Today's LLMs are smart. They have good theory of mind and when given a good harness can go beyond rote instructions and really make things happen. Even if the feedback from the user is terse or frustrated, try to actually understand the task and why the user is writing what they wrote, and then transmit this understanding into the instructions. If you find yourself writing ALWAYS or NEVER in all caps, or using super rigid structures, that's a yellow flag — if possible, reframe and explain the reasoning so that the model understands why the thing you're asking for is important.
 
-4. **Look for repeated work across test cases.** Read the transcripts from the test runs and notice if the subagents all independently wrote similar helper scripts or took the same multi-step approach to something. If all 3 test cases resulted in the subagent writing a `create_docx.py` or a `build_chart.py`, that's a strong signal the skill should bundle that script. Write it once, put it in `scripts/`, and tell the skill to use it. This saves every future invocation from reinventing the wheel.
+4. **Look for repeated work across test cases.** Read the transcripts from the test runs and notice if the subagents all independently wrote similar helper scripts or took the same multi-step approach to something. If all 3 test cases resulted in the subagent writing a `create_docx.ts` or a `build_chart.ts`, that's a strong signal the skill should bundle that script. Write it once, put it in `scripts/`, and tell the skill to use it. This saves every future invocation from reinventing the wheel.
 
 This task is pretty important and your thinking time is not the blocker; take your time and really mull things over. Write a draft revision and then look at it anew and make improvements. Really do your best to get into the head of the user and understand what they want and need.
 
@@ -371,7 +371,7 @@ This step matters — bad eval queries lead to bad descriptions.
 **Prerequisite:** This step requires the `claude` CLI (Claude Code). If unavailable, skip this step and manually iterate on the description.
 
 ```bash
-uv run python -m scripts.run_loop \
+bun run skills/skill-creator/scripts/run_loop.ts \
   --eval-set <path-to-trigger-eval.json> \
   --skill-path <path-to-skill> \
   --model <model-id-powering-this-session> \
@@ -402,7 +402,7 @@ Take `best_description` from the JSON output and update the skill's SKILL.md fro
 Package the skill into a `.skill` file for distribution:
 
 ```bash
-uv run python -m scripts.package_skill <path/to/skill-folder>
+bun run skills/skill-creator/scripts/package_skill.ts <path/to/skill-folder>
 ```
 
 After packaging, direct the user to the resulting `.skill` file path so they can install it.
@@ -417,11 +417,11 @@ Use `task` subagents for parallel execution. For each test case, spawn two subag
 
 ### Reviewing results
 
-If the environment has a display, use `eval-viewer/generate_review.py` to serve the reviewer (it opens a browser). If headless, use `--static` to generate a standalone HTML file.
+If the environment has a display, use `bun run skills/skill-creator/eval-viewer/generate_review.ts` to serve the reviewer (it opens a browser). If headless, use `--static` to generate a standalone HTML file.
 
 ### Description optimization
 
-The `run_loop.py` script uses `claude -p` internally (Claude Code CLI) to test skill triggering. If `claude` is not available, skip automated description optimization and iterate manually based on user feedback.
+The `run_loop.ts` script uses `claude -p` internally (Claude Code CLI) to test skill triggering. If `claude` is not available, skip automated description optimization and iterate manually based on user feedback.
 
 ### Updating an existing skill
 
@@ -446,9 +446,9 @@ The `run_loop.py` script uses `claude -p` internally (Claude Code CLI) to test s
 - Draft or edit the skill
 - Run the agent with access to the skill on test prompts
 - With the user, evaluate the outputs:
-  - Create benchmark.json and run `eval-viewer/generate_review.py` to help the user review
+  - Create benchmark.json and run `bun run skills/skill-creator/eval-viewer/generate_review.ts` to help the user review
   - Run quantitative evals
 - Repeat until you and the user are satisfied
 - Package the final skill and return it to the user.
 
-Add steps to your TodoList to make sure you don't forget. Always put "Create evals JSON and run eval-viewer/generate_review.py so human can review test cases" in your TodoList to make sure it happens.
+Add steps to your TodoList to make sure you don't forget. Always put "Create evals JSON and run eval-viewer/generate_review.ts so human can review test cases" in your TodoList to make sure it happens.

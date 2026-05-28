@@ -6,10 +6,12 @@
       "name": "@MatthewYe/opencode-toolbox",
       "dependencies": {
         "@opencode-ai/plugin": "latest",
+        "adm-zip": "^0.5.17",
         "gray-matter": "^4.0.3",
       },
       "devDependencies": {
         "@tsconfig/node22": "latest",
+        "@types/adm-zip": "^0.5.8",
         "@types/node": "latest",
         "typescript": "latest",
       },
@@ -36,7 +38,11 @@
 
     "@tsconfig/node22": ["@tsconfig/node22@22.0.5", "https://mirrors.huaweicloud.com/repository/npm/@tsconfig/node22/-/node22-22.0.5.tgz", {}, "sha512-hLf2ld+sYN/BtOJjHUWOk568dvjFQkHnLNa6zce25GIH+vxKfvTgm3qpaH6ToF5tu/NN0IH66s+Bb5wElHrLcw=="],
 
+    "@types/adm-zip": ["@types/adm-zip@0.5.8", "https://mirrors.huaweicloud.com/repository/npm/@types/adm-zip/-/adm-zip-0.5.8.tgz", { "dependencies": { "@types/node": "*" } }, "sha512-RVVH7QvZYbN+ihqZ4kX/dMiowf6o+Jk1fNwiSdx0NahBJLU787zkULhGhJM8mf/obmLGmgdMM0bXsQTmyfbR7Q=="],
+
     "@types/node": ["@types/node@25.9.1", "https://mirrors.huaweicloud.com/repository/npm/@types/node/-/node-25.9.1.tgz", { "dependencies": { "undici-types": ">=7.24.0 <7.24.7" } }, "sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg=="],
+
+    "adm-zip": ["adm-zip@0.5.17", "https://mirrors.huaweicloud.com/repository/npm/adm-zip/-/adm-zip-0.5.17.tgz", {}, "sha512-+Ut8d9LLqwEvHHJl1+PIHqoyDxFgVN847JTVM3Izi3xHDWPE4UtzzXysMZQs64DMcrJfBeS/uoEP4AD3HQHnQQ=="],
 
     "argparse": ["argparse@1.0.10", "https://mirrors.huaweicloud.com/repository/npm/argparse/-/argparse-1.0.10.tgz", { "dependencies": { "sprintf-js": "~1.0.2" } }, "sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg=="],
 
