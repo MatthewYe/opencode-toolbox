@@ -9,17 +9,41 @@
  *     bun run generate_review.ts <workspace-path> [--port PORT] [--skill-name NAME]
  *     bun run generate_review.ts <workspace-path> --previous-workspace /path/to/old/workspace
  */
-import { readFileSync, writeFileSync, existsSync, statSync, readdirSync, mkdirSync } from "node:fs";
-import { join, relative, basename, extname, resolve } from "node:path";
-import { createServer, IncomingMessage, ServerResponse } from "node:http";
-import { execSync, exec } from "node:child_process";
+
+import { exec, execSync } from "node:child_process";
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { basename, extname, join, relative, resolve } from "node:path";
 
 const METADATA_FILES = new Set(["transcript.md", "user_notes.md", "metrics.json"]);
 
 const TEXT_EXTENSIONS = new Set([
-  ".txt", ".md", ".json", ".csv", ".py", ".js", ".ts", ".tsx", ".jsx",
-  ".yaml", ".yml", ".xml", ".html", ".css", ".sh", ".rb", ".go", ".rs",
-  ".java", ".c", ".cpp", ".h", ".hpp", ".sql", ".r", ".toml",
+  ".txt",
+  ".md",
+  ".json",
+  ".csv",
+  ".py",
+  ".js",
+  ".ts",
+  ".tsx",
+  ".jsx",
+  ".yaml",
+  ".yml",
+  ".xml",
+  ".html",
+  ".css",
+  ".sh",
+  ".rb",
+  ".go",
+  ".rs",
+  ".java",
+  ".c",
+  ".cpp",
+  ".h",
+  ".hpp",
+  ".sql",
+  ".r",
+  ".toml",
 ]);
 
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"]);
@@ -105,7 +129,7 @@ export function getMimeType(path: string): string {
 
 function findRunsRecursive(root: string, current: string, runs: Run[]): void {
   const stat = statSync(current, { throwIfNoEntry: false });
-  if (!stat || !stat.isDirectory()) return;
+  if (!stat?.isDirectory()) return;
 
   const outputsDir = join(current, "outputs");
   if (existsSync(outputsDir) && statSync(outputsDir).isDirectory()) {
@@ -145,10 +169,7 @@ export function buildRun(root: string, runDir: string): Run | null {
   let evalId: number | null = null;
 
   // Try eval_metadata.json
-  for (const candidate of [
-    join(runDir, "eval_metadata.json"),
-    join(runDir, "..", "eval_metadata.json"),
-  ]) {
+  for (const candidate of [join(runDir, "eval_metadata.json"), join(runDir, "..", "eval_metadata.json")]) {
     if (existsSync(candidate)) {
       try {
         const metadata = JSON.parse(readFileSync(candidate, "utf-8"));
@@ -163,10 +184,7 @@ export function buildRun(root: string, runDir: string): Run | null {
 
   // Fall back to transcript.md
   if (!prompt) {
-    for (const candidate of [
-      join(runDir, "transcript.md"),
-      join(runDir, "outputs", "transcript.md"),
-    ]) {
+    for (const candidate of [join(runDir, "transcript.md"), join(runDir, "outputs", "transcript.md")]) {
       if (existsSync(candidate)) {
         try {
           const text = readFileSync(candidate, "utf-8");
@@ -202,10 +220,7 @@ export function buildRun(root: string, runDir: string): Run | null {
 
   // Load grading if present
   let grading: Record<string, unknown> | null = null;
-  for (const candidate of [
-    join(runDir, "grading.json"),
-    join(runDir, "..", "grading.json"),
-  ]) {
+  for (const candidate of [join(runDir, "grading.json"), join(runDir, "..", "grading.json")]) {
     if (existsSync(candidate)) {
       try {
         grading = JSON.parse(readFileSync(candidate, "utf-8"));
@@ -291,7 +306,7 @@ export function loadPreviousIteration(workspace: string): Record<string, Previou
       const data = JSON.parse(readFileSync(feedbackPath, "utf-8"));
       const reviews = data.reviews || [];
       for (const r of reviews) {
-        if (r.feedback && r.feedback.trim()) {
+        if (r.feedback?.trim()) {
           feedbackMap[r.run_id] = r.feedback;
         }
       }
@@ -369,12 +384,12 @@ function pythonJsonDumps(obj: unknown): string {
   if (typeof obj === "string") return JSON.stringify(obj);
   if (Array.isArray(obj)) {
     const items = obj.map((item) => pythonJsonDumps(item));
-    return "[" + items.join(", ") + "]";
+    return `[${items.join(", ")}]`;
   }
   if (typeof obj === "object") {
     const keys = Object.keys(obj as Record<string, unknown>);
-    const pairs = keys.map((k) => JSON.stringify(k) + ": " + pythonJsonDumps((obj as Record<string, unknown>)[k]));
-    return "{" + pairs.join(", ") + "}";
+    const pairs = keys.map((k) => `${JSON.stringify(k)}: ${pythonJsonDumps((obj as Record<string, unknown>)[k])}`);
+    return `{${pairs.join(", ")}}`;
   }
   return "null";
 }
@@ -457,7 +472,7 @@ function createHandler(ctx: ServerContext): (req: IncomingMessage, res: ServerRe
           if (!data || typeof data !== "object" || !("reviews" in data)) {
             throw new Error("Expected JSON object with 'reviews' key");
           }
-          writeFileSync(ctx.feedbackPath, JSON.stringify(data, null, 2) + "\n");
+          writeFileSync(ctx.feedbackPath, `${JSON.stringify(data, null, 2)}\n`);
           resp = Buffer.from('{"ok":true}');
           res.writeHead(200, {
             "Content-Type": "application/json",
@@ -614,7 +629,7 @@ if (import.meta.main) {
     feedbackPath,
     previous,
     benchmarkPath: resolvedBenchmarkPath,
-    onListening: (url, actualPort) => {
+    onListening: (url, _actualPort) => {
       console.log(`\n  Eval Viewer`);
       console.log(`  ─────────────────────────────────`);
       console.log(`  URL:       ${url}`);

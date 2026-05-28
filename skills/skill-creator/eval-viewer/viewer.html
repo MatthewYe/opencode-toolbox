@@ -483,9 +483,9 @@
   <script>
     /*__EMBEDDED_DATA__*/
 
-    let feedbackMap = {};
+    const feedbackMap = {};
     let currentIndex = 0;
-    let visitedRuns = new Set();
+    const visitedRuns = new Set();
 
     async function init() {
       const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
@@ -546,7 +546,7 @@
       renderPrevOutputs(run);
       renderGrades(run);
 
-      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevFb = EMBEDDED_DATA.previous_feedback?.[run.id];
       const prevEl = document.getElementById("prev-feedback");
       if (prevFb) {
         document.getElementById("prev-feedback-text").textContent = prevFb;
@@ -643,7 +643,7 @@
     function renderPrevOutputs(run) {
       const section = document.getElementById("prev-outputs-section");
       const content = document.getElementById("prev-outputs-content");
-      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+      const prevOutputs = EMBEDDED_DATA.previous_outputs?.[run.id];
       if (!prevOutputs || prevOutputs.length === 0) { section.style.display = "none"; return; }
       section.style.display = "block";
       content.classList.remove("open");

@@ -1,19 +1,11 @@
-import { describe, it, expect, beforeAll } from "bun:test";
-import {
-  readFileSync,
-  mkdtempSync,
-  writeFileSync,
-  rmSync,
-  existsSync,
-  mkdirSync,
-} from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { beforeAll, describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { parseSkillMd } from "../utils";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const SCRIPTS_DIR = join(import.meta.dir, "..");
-const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
+const _FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 
 // =============================================================================
 // Slice 1: Stream-json parsing (pure function)
@@ -210,9 +202,7 @@ describe("parseClaudeStreamResponse", () => {
       JSON.stringify({
         type: "assistant",
         message: {
-          content: [
-            { type: "tool_use", name: "Bash", input: { command: "ls" } },
-          ],
+          content: [{ type: "tool_use", name: "Bash", input: { command: "ls" } }],
         },
       }),
     ];
@@ -221,9 +211,7 @@ describe("parseClaudeStreamResponse", () => {
   });
 
   it("returns false on result event with no prior trigger", () => {
-    const lines = [
-      JSON.stringify({ type: "result" }),
-    ];
+    const lines = [JSON.stringify({ type: "result" })];
 
     expect(parseClaudeStreamResponse(lines, "my-skill-abc12345")).toBe(false);
   });
@@ -410,7 +398,7 @@ describe("runEval", () => {
     ];
 
     const startTimes: number[] = [];
-    const mockRunQuery = async (query: string) => {
+    const mockRunQuery = async (_query: string) => {
       startTimes.push(Date.now());
       // Small delay to observe parallelism
       await new Promise((r) => setTimeout(r, 10));
@@ -446,7 +434,7 @@ describe("runEval", () => {
     ];
 
     const startTimes: number[] = [];
-    const mockRunQuery = async (query: string) => {
+    const mockRunQuery = async (_query: string) => {
       startTimes.push(Date.now());
       // Small delay to observe parallelism
       await new Promise((r) => setTimeout(r, 10));
@@ -548,15 +536,9 @@ describe("findProjectRoot", () => {
 // =============================================================================
 
 describe("CLI (import.meta.main)", () => {
-  function makeSkillFixture(
-    name: string,
-    description: string,
-  ): string {
+  function makeSkillFixture(name: string, description: string): string {
     const dir = mkdtempSync(join(tmpdir(), "run-eval-skill-"));
-    writeFileSync(
-      join(dir, "SKILL.md"),
-      `---\nname: ${name}\ndescription: ${description}\n---\n# ${name}\n`,
-    );
+    writeFileSync(join(dir, "SKILL.md"), `---\nname: ${name}\ndescription: ${description}\n---\n# ${name}\n`);
     return dir;
   }
 
@@ -567,11 +549,7 @@ describe("CLI (import.meta.main)", () => {
   }
 
   it("prints usage and exits 1 when --eval-set is missing", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "run_eval.ts")],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "run_eval.ts")], { encoding: "utf-8" });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Usage:");
   });
@@ -579,11 +557,9 @@ describe("CLI (import.meta.main)", () => {
   it("prints usage and exits 1 when --skill-path is missing", () => {
     const evalSetFile = makeEvalSet([{ query: "test", should_trigger: true }]);
     try {
-      const result = spawnSync(
-        "bun",
-        ["run", join(SCRIPTS_DIR, "run_eval.ts"), "--eval-set", evalSetFile],
-        { encoding: "utf-8" },
-      );
+      const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "run_eval.ts"), "--eval-set", evalSetFile], {
+        encoding: "utf-8",
+      });
       expect(result.status).toBe(1);
       expect(result.stderr).toContain("Usage:");
     } finally {
@@ -596,14 +572,7 @@ describe("CLI (import.meta.main)", () => {
     try {
       const result = spawnSync(
         "bun",
-        [
-          "run",
-          join(SCRIPTS_DIR, "run_eval.ts"),
-          "--eval-set",
-          evalSetFile,
-          "--skill-path",
-          "/nonexistent/path",
-        ],
+        ["run", join(SCRIPTS_DIR, "run_eval.ts"), "--eval-set", evalSetFile, "--skill-path", "/nonexistent/path"],
         { encoding: "utf-8" },
       );
       expect(result.status).toBe(1);
@@ -884,8 +853,6 @@ describe("Output structure", () => {
     });
 
     expect(result.summary.total).toBe(result.results.length);
-    expect(result.summary.passed + result.summary.failed).toBe(
-      result.summary.total,
-    );
+    expect(result.summary.passed + result.summary.failed).toBe(result.summary.total);
   });
 });

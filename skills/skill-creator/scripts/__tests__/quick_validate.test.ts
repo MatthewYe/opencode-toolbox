@@ -1,8 +1,7 @@
-import { describe, it, expect } from "bun:test";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { describe, expect, it } from "bun:test";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { spawnSync } from "node:child_process";
+import { join } from "node:path";
 import { validateSkill } from "../quick_validate";
 
 function makeFixture(files: Record<string, string>): string {
@@ -39,7 +38,7 @@ compatibility: "1.0"
   });
 
   // --- Missing required fields ---
-  it('errors on missing name', () => {
+  it("errors on missing name", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 description: has desc but no name
@@ -56,7 +55,7 @@ description: has desc but no name
     }
   });
 
-  it('errors on missing description', () => {
+  it("errors on missing description", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: only-name
@@ -74,7 +73,7 @@ name: only-name
   });
 
   // --- Unexpected keys ---
-  it('errors on unexpected frontmatter keys', () => {
+  it("errors on unexpected frontmatter keys", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: test-skill
@@ -98,7 +97,7 @@ unknown-key: baz
   });
 
   // --- Name validations ---
-  it('errors on name with uppercase', () => {
+  it("errors on name with uppercase", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: Test-Name
@@ -118,7 +117,7 @@ description: A test skill
     }
   });
 
-  it('errors on name starting with hyphen', () => {
+  it("errors on name starting with hyphen", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: -bad-name
@@ -130,15 +129,13 @@ description: A test skill
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Name '-bad-name' cannot start/end with hyphen or contain consecutive hyphens",
-      );
+      expect(result.message).toBe("Name '-bad-name' cannot start/end with hyphen or contain consecutive hyphens");
     } finally {
       cleanup(dir);
     }
   });
 
-  it('errors on name ending with hyphen', () => {
+  it("errors on name ending with hyphen", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: bad-name-
@@ -150,15 +147,13 @@ description: A test skill
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Name 'bad-name-' cannot start/end with hyphen or contain consecutive hyphens",
-      );
+      expect(result.message).toBe("Name 'bad-name-' cannot start/end with hyphen or contain consecutive hyphens");
     } finally {
       cleanup(dir);
     }
   });
 
-  it('errors on name with consecutive hyphens', () => {
+  it("errors on name with consecutive hyphens", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: bad--name
@@ -170,15 +165,13 @@ description: A test skill
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Name 'bad--name' cannot start/end with hyphen or contain consecutive hyphens",
-      );
+      expect(result.message).toBe("Name 'bad--name' cannot start/end with hyphen or contain consecutive hyphens");
     } finally {
       cleanup(dir);
     }
   });
 
-  it('errors on name too long (>64 chars)', () => {
+  it("errors on name too long (>64 chars)", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: ${"a".repeat(65)}
@@ -190,15 +183,13 @@ description: A test skill
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Name is too long (65 characters). Maximum is 64 characters.",
-      );
+      expect(result.message).toBe("Name is too long (65 characters). Maximum is 64 characters.");
     } finally {
       cleanup(dir);
     }
   });
 
-  it('errors on name that is not a string', () => {
+  it("errors on name that is not a string", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: 123
@@ -217,7 +208,7 @@ description: A test skill
   });
 
   // --- Description validations ---
-  it('errors on description with angle brackets', () => {
+  it("errors on description with angle brackets", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: test-skill
@@ -229,15 +220,13 @@ description: Has <angle> brackets
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Description cannot contain angle brackets (< or >)",
-      );
+      expect(result.message).toBe("Description cannot contain angle brackets (< or >)");
     } finally {
       cleanup(dir);
     }
   });
 
-  it('errors on description too long (>1024 chars)', () => {
+  it("errors on description too long (>1024 chars)", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: test-skill
@@ -249,15 +238,13 @@ description: ${"x".repeat(1025)}
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Description is too long (1025 characters). Maximum is 1024 characters.",
-      );
+      expect(result.message).toBe("Description is too long (1025 characters). Maximum is 1024 characters.");
     } finally {
       cleanup(dir);
     }
   });
 
-  it('errors on description that is not a string', () => {
+  it("errors on description that is not a string", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: test-skill
@@ -275,7 +262,7 @@ description: 42
     }
   });
 
-  it('errors on null description (description:)', () => {
+  it("errors on null description (description:)", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: test-skill
@@ -287,16 +274,14 @@ description:
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Description must be a string, got NoneType",
-      );
+      expect(result.message).toBe("Description must be a string, got NoneType");
     } finally {
       cleanup(dir);
     }
   });
 
   // --- Compatibility validations ---
-  it('errors on compatibility too long (>500 chars)', () => {
+  it("errors on compatibility too long (>500 chars)", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: test-skill
@@ -309,15 +294,13 @@ compatibility: ${"x".repeat(501)}
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Compatibility is too long (501 characters). Maximum is 500 characters.",
-      );
+      expect(result.message).toBe("Compatibility is too long (501 characters). Maximum is 500 characters.");
     } finally {
       cleanup(dir);
     }
   });
 
-  it('errors on compatibility that is not a string', () => {
+  it("errors on compatibility that is not a string", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: test-skill
@@ -337,7 +320,7 @@ compatibility: 123
   });
 
   // --- Missing SKILL.md ---
-  it('errors when SKILL.md is missing', () => {
+  it("errors when SKILL.md is missing", () => {
     const dir = makeFixture({});
     try {
       const result = validateSkill(dir);
@@ -349,7 +332,7 @@ compatibility: 123
   });
 
   // --- No frontmatter ---
-  it('errors when no frontmatter present', () => {
+  it("errors when no frontmatter present", () => {
     const dir = makeFixture({
       "SKILL.md": `# No frontmatter here
 Some content.
@@ -365,7 +348,7 @@ Some content.
   });
 
   // --- Invalid frontmatter format ---
-  it('errors when frontmatter has no closing ---', () => {
+  it("errors when frontmatter has no closing ---", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: bad
@@ -382,7 +365,7 @@ description: bad
   });
 
   // --- Frontmatter not a dict ---
-  it('errors when frontmatter is a YAML list', () => {
+  it("errors when frontmatter is a YAML list", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 - item1
@@ -394,16 +377,14 @@ description: bad
     try {
       const result = validateSkill(dir);
       expect(result.valid).toBe(false);
-      expect(result.message).toBe(
-        "Frontmatter must be a YAML dictionary",
-      );
+      expect(result.message).toBe("Frontmatter must be a YAML dictionary");
     } finally {
       cleanup(dir);
     }
   });
 
   // --- Valid edge cases ---
-  it('accepts block-style description with no continuation', () => {
+  it("accepts block-style description with no continuation", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: empty-block-skill
@@ -421,7 +402,7 @@ description: |
     }
   });
 
-  it('accepts name with digits', () => {
+  it("accepts name with digits", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: test-skill-123
@@ -439,7 +420,7 @@ description: Has digits in name
     }
   });
 
-  it('accepts empty name (whitespace only)', () => {
+  it("accepts empty name (whitespace only)", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: "   "
@@ -458,7 +439,7 @@ description: A test skill
     }
   });
 
-  it('accepts valid block-style description', () => {
+  it("accepts valid block-style description", () => {
     const dir = makeFixture({
       "SKILL.md": `---
 name: block-skill

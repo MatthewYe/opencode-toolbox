@@ -11,8 +11,8 @@
  * Example:
  *     bun run aggregate_benchmark.ts benchmarks/2026-01-15T10-30-00/
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
-import { join, basename } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 export interface Stats {
   mean: number;
@@ -91,7 +91,7 @@ export function calculateStats(values: number[]): Stats {
   };
 }
 
-function roundTo(value: number, decimals: number): number {
+function _roundTo(value: number, decimals: number): number {
   const factor = 10 ** decimals;
   return Math.round(value * factor) / factor;
 }
@@ -286,7 +286,9 @@ export function loadRunResults(benchmarkDir: string): Record<string, RunResult[]
   return results;
 }
 
-export function aggregateResults(results: Record<string, RunResult[]>): Record<string, Record<string, Stats> | Record<string, string>> {
+export function aggregateResults(
+  results: Record<string, RunResult[]>,
+): Record<string, Record<string, Stats> | Record<string, string>> {
   const runSummary: Record<string, Record<string, Stats> | Record<string, string>> = {};
   const configs = Object.keys(results);
 
@@ -321,18 +323,18 @@ export function aggregateResults(results: Record<string, RunResult[]>): Record<s
     const deltaTime = (primary.time_seconds?.mean ?? 0) - (baseline.time_seconds?.mean ?? 0);
     const deltaTokens = (primary.tokens?.mean ?? 0) - (baseline.tokens?.mean ?? 0);
 
-    runSummary["delta"] = {
+    runSummary.delta = {
       pass_rate: formatDelta(deltaPassRate, 2),
       time_seconds: formatDelta(deltaTime, 1),
       tokens: formatDelta(deltaTokens, 0),
     };
   } else {
-    const primary = configs.length > 0 ? (runSummary[configs[0]] || {}) as Record<string, Stats> : {};
+    const primary = configs.length > 0 ? ((runSummary[configs[0]] || {}) as Record<string, Stats>) : {};
     const deltaPassRate = (primary.pass_rate?.mean ?? 0) - 0;
     const deltaTime = (primary.time_seconds?.mean ?? 0) - 0;
     const deltaTokens = (primary.tokens?.mean ?? 0) - 0;
 
-    runSummary["delta"] = {
+    runSummary.delta = {
       pass_rate: formatDelta(deltaPassRate, 2),
       time_seconds: formatDelta(deltaTime, 1),
       tokens: formatDelta(deltaTokens, 0),
@@ -342,11 +344,7 @@ export function aggregateResults(results: Record<string, RunResult[]>): Record<s
   return runSummary;
 }
 
-export function generateBenchmark(
-  benchmarkDir: string,
-  skillName?: string,
-  skillPath?: string,
-): Benchmark {
+export function generateBenchmark(benchmarkDir: string, skillName?: string, skillPath?: string): Benchmark {
   const results = loadRunResults(benchmarkDir);
   const runSummary = aggregateResults(results) as Record<string, Record<string, Stats> | Record<string, string>>;
 
@@ -425,7 +423,7 @@ export function generateMarkdown(benchmark: Benchmark): string {
 
   const aSummary = (runSummary[configA] || {}) as Record<string, Stats>;
   const bSummary = (runSummary[configB] || {}) as Record<string, Stats>;
-  const delta = (runSummary["delta"] || {}) as Record<string, string>;
+  const delta = (runSummary.delta || {}) as Record<string, string>;
 
   // Format pass rate
   const aPr = aSummary.pass_rate || { mean: 0, stddev: 0, min: 0, max: 0 };
@@ -463,7 +461,9 @@ export function generateMarkdown(benchmark: Benchmark): string {
 if (import.meta.main) {
   const args = process.argv.slice(2);
   if (args.length === 0) {
-    console.error("Usage: bun run aggregate_benchmark.ts <benchmark_dir> [--skill-name <name>] [--skill-path <path>] [--output|-o <output.json>]");
+    console.error(
+      "Usage: bun run aggregate_benchmark.ts <benchmark_dir> [--skill-name <name>] [--skill-path <path>] [--output|-o <output.json>]",
+    );
     process.exit(1);
   }
 
@@ -502,14 +502,12 @@ if (import.meta.main) {
   // Print summary
   const runSummary = benchmark.run_summary;
   const configs = Object.keys(runSummary).filter((k) => k !== "delta");
-  const delta = (runSummary["delta"] || {}) as Record<string, string>;
+  const delta = (runSummary.delta || {}) as Record<string, string>;
 
   console.error(`\nSummary:`);
   for (const config of configs) {
-    const pr = ((runSummary[config] as Record<string, Stats>)?.pass_rate)?.mean ?? 0;
-    const label = config
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase());
+    const pr = (runSummary[config] as Record<string, Stats>)?.pass_rate?.mean ?? 0;
+    const label = config.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
     console.error(`  ${label}: ${(pr * 100).toFixed(1)}% pass rate`);
   }
   console.error(`  Delta:         ${delta.pass_rate || "\u2014"}`);

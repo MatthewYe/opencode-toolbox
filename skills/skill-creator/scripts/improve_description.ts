@@ -11,9 +11,9 @@
  *     bun run improve_description.ts --eval-results <path> --skill-path <path> --model <name> [options]
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { parseSkillMd } from "./utils";
 
 // =============================================================================
@@ -109,20 +109,10 @@ export interface BuildPromptInput {
  * Pure function — takes structured data, returns the prompt text.
  */
 export function buildPrompt(input: BuildPromptInput): string {
-  const {
-    skillName,
-    skillContent,
-    currentDescription,
-    failedTriggers,
-    falseTriggers,
-    trainScore,
-    testScore,
-    history,
-  } = input;
+  const { skillName, skillContent, currentDescription, failedTriggers, falseTriggers, trainScore, testScore, history } =
+    input;
 
-  const scoresSummary = testScore
-    ? `Train: ${trainScore}, Test: ${testScore}`
-    : `Train: ${trainScore}`;
+  const scoresSummary = testScore ? `Train: ${trainScore}, Test: ${testScore}` : `Train: ${trainScore}`;
 
   let prompt = `You are optimizing a skill description for a skill called "${skillName}". A "skill" is a prompt with progressive disclosure -- there's a title and description that the agent sees when deciding whether to use the skill, and then if it does use the skill, it reads the .md file which has more details.
 
@@ -157,10 +147,8 @@ Current scores (${scoresSummary}):
     prompt += "PREVIOUS ATTEMPTS (do NOT repeat these — try something structurally different):\n\n";
     for (const h of history) {
       const trainS = `${h.train_passed ?? h.passed ?? 0}/${h.train_total ?? h.total ?? 0}`;
-      const testS = h.test_passed != null
-        ? `${h.test_passed}/${h.test_total ?? "?"}`
-        : null;
-      const scoreStr = `train=${trainS}` + (testS ? `, test=${testS}` : "");
+      const testS = h.test_passed != null ? `${h.test_passed}/${h.test_total ?? "?"}` : null;
+      const scoreStr = `train=${trainS}${testS ? `, test=${testS}` : ""}`;
       prompt += `<attempt ${scoreStr}>\n`;
       prompt += `Description: "${h.description}"\n`;
       if (h.results && Array.isArray(h.results)) {
@@ -230,17 +218,17 @@ export function detectCli(): string {
  * This is the system boundary — mock this in tests.
  */
 function _callCli(prompt: string, cli: string, model?: string, timeout: number = 300): string {
-  let cmd: string[];
-  let shellCmd: string;
+  let _cmd: string[];
+  let _shellCmd: string;
 
   if (cli === "claude") {
     const modelArg = model ? `--model "${model}"` : "";
-    shellCmd = `claude -p --output-format text ${modelArg}`;
+    _shellCmd = `claude -p --output-format text ${modelArg}`;
   } else if (cli === "opencode") {
     if (model) {
-      shellCmd = `opencode run --format default --model "${model}"`;
+      _shellCmd = `opencode run --format default --model "${model}"`;
     } else {
-      shellCmd = `opencode run --format default --agent general`;
+      _shellCmd = `opencode run --format default --agent general`;
     }
   } else {
     throw new Error(`Unknown CLI: ${cli}`);
@@ -322,9 +310,8 @@ export async function improveDescription(options: ImproveDescriptionOptions): Pr
     history,
   });
 
-  const caller = injectedCallCli || (
-    (p: string, c: string, m?: string, t?: number) => Promise.resolve(_callCli(p, c, m, t))
-  );
+  const caller =
+    injectedCallCli || ((p: string, c: string, m?: string, t?: number) => Promise.resolve(_callCli(p, c, m, t)));
   const text = await caller(prompt, cli, model, timeout);
   let description = parseNewDescription(text);
 
@@ -396,7 +383,9 @@ if (import.meta.main) {
   const model = getArg("--model");
 
   if (!evalResultsPath || !skillPath || !model) {
-    console.error("Usage: bun run improve_description.ts --eval-results <path> --skill-path <path> --model <name> [options]");
+    console.error(
+      "Usage: bun run improve_description.ts --eval-results <path> --skill-path <path> --model <name> [options]",
+    );
     console.error("");
     console.error("Options:");
     console.error("  --eval-results <path>    Path to eval results JSON (from run_eval.ts) (required)");
@@ -466,28 +455,30 @@ if (import.meta.main) {
     history,
     model,
     cli,
-  }).then((newDescription) => {
-    if (verbose) {
-      console.error(`Improved: ${newDescription}`);
-    }
+  })
+    .then((newDescription) => {
+      if (verbose) {
+        console.error(`Improved: ${newDescription}`);
+      }
 
-    const output = {
-      description: newDescription,
-      history: [
-        ...history,
-        {
-          description: currentDescription,
-          passed: evalResults.summary.passed,
-          failed: evalResults.summary.failed,
-          total: evalResults.summary.total,
-          results: evalResults.results,
-        },
-      ],
-    };
-    console.log(JSON.stringify(output, null, 2));
-    process.exit(0);
-  }).catch((e) => {
-    console.error(`Error: ${e}`);
-    process.exit(1);
-  });
+      const output = {
+        description: newDescription,
+        history: [
+          ...history,
+          {
+            description: currentDescription,
+            passed: evalResults.summary.passed,
+            failed: evalResults.summary.failed,
+            total: evalResults.summary.total,
+            results: evalResults.results,
+          },
+        ],
+      };
+      console.log(JSON.stringify(output, null, 2));
+      process.exit(0);
+    })
+    .catch((e) => {
+      console.error(`Error: ${e}`);
+      process.exit(1);
+    });
 }

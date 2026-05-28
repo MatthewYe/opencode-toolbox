@@ -1,10 +1,10 @@
-import { describe, it, expect } from "bun:test";
-import { readFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { generateHtml } from "../generate_report";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { LoopData } from "../generate_report";
+import { generateHtml } from "../generate_report";
 
 const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 const SCRIPTS_DIR = join(import.meta.dir, "..");
@@ -138,11 +138,9 @@ describe("CLI (import.meta.main)", () => {
   const reportSimplePath = join(FIXTURES_DIR, "report-simple.json");
 
   it("reads input file from positional arg and produces HTML on stdout", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "generate_report.ts"), reportSimplePath],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "generate_report.ts"), reportSimplePath], {
+      encoding: "utf-8",
+    });
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("<!DOCTYPE html>");
     expect(result.stdout).toContain("<table>");
@@ -151,11 +149,10 @@ describe("CLI (import.meta.main)", () => {
 
   it("reads from stdin when '-' is passed as input arg", () => {
     const fixtureContent = readFileSync(reportSimplePath, "utf-8");
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "generate_report.ts"), "-"],
-      { encoding: "utf-8", input: fixtureContent },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "generate_report.ts"), "-"], {
+      encoding: "utf-8",
+      input: fixtureContent,
+    });
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("<!DOCTYPE html>");
     expect(result.stdout).toContain("<table>");
@@ -182,11 +179,7 @@ describe("CLI (import.meta.main)", () => {
   });
 
   it("prints usage to stderr and exits 1 when no input is provided", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "generate_report.ts")],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "generate_report.ts")], { encoding: "utf-8" });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Usage:");
   });

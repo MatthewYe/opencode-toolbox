@@ -14,8 +14,8 @@
     "errors_encountered": 3
   },
   "expectations": [
-    {"text": "Handles edge case A", "passed": false, "evidence": "timeout on edge case"},
-    {"text": "Handles edge case B", "passed": false, "evidence": "incorrect parsing"}
+    { "text": "Handles edge case A", "passed": false, "evidence": "timeout on edge case" },
+    { "text": "Handles edge case B", "passed": false, "evidence": "incorrect parsing" }
   ],
   "user_notes_summary": {
     "uncertainties": ["Unsure about prompt structure"],

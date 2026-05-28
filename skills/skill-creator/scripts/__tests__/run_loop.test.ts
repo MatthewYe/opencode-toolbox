@@ -1,13 +1,8 @@
-import { describe, it, expect, beforeAll } from "bun:test";
-import {
-  readFileSync,
-  mkdtempSync,
-  writeFileSync,
-  rmSync,
-} from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { beforeAll, describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const SCRIPTS_DIR = join(import.meta.dir, "..");
 const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
@@ -62,7 +57,7 @@ describe("splitEvalSet", () => {
       { query: "n1", should_trigger: false },
     ];
 
-    const [train, test] = splitEvalSet(evalSet, 0.4);
+    const [_train, test] = splitEvalSet(evalSet, 0.4);
 
     const testTrigger = test.filter((e) => e.should_trigger);
     const testNoTrigger = test.filter((e) => !e.should_trigger);
@@ -102,7 +97,7 @@ describe("splitEvalSet", () => {
     const [trainA, testA] = splitEvalSet(queries, 0.4, 1);
     const [trainB, testB] = splitEvalSet(queries, 0.4, 9999);
 
-    const testAQuerySet = new Set(testA.map((e) => e.query));
+    const _testAQuerySet = new Set(testA.map((e) => e.query));
     const testBQuerySet = new Set(testB.map((e) => e.query));
 
     // Verify they are different (not guaranteed but extremely likely with 20 items)
@@ -110,7 +105,7 @@ describe("splitEvalSet", () => {
     const same = aInBSize === testA.length && testA.length === testB.length;
     // If same (extremely unlikely), at least verify train sets differ
     if (same) {
-      const trainAQuerySet = new Set(trainA.map((e) => e.query));
+      const _trainAQuerySet = new Set(trainA.map((e) => e.query));
       const trainBQuerySet = new Set(trainB.map((e) => e.query));
       const diff = trainA.filter((e) => !trainBQuerySet.has(e.query)).length > 0;
       expect(diff).toBe(true);
@@ -137,10 +132,13 @@ describe("splitEvalSet", () => {
     expect(train.length + test.length).toBe(evalSet.length);
 
     // Holdout should be approximately correct (at least 1 per class means min 2 test)
-    const expectedTestSize = Math.min(
+    const _expectedTestSize = Math.min(
       evalSet.length - 2,
-      Math.max(2, Math.floor(evalSet.filter(e => e.should_trigger).length * 0.3) +
-        Math.floor(evalSet.filter(e => !e.should_trigger).length * 0.3)),
+      Math.max(
+        2,
+        Math.floor(evalSet.filter((e) => e.should_trigger).length * 0.3) +
+          Math.floor(evalSet.filter((e) => !e.should_trigger).length * 0.3),
+      ),
     );
     // Just verify it's non-empty and not everything
     expect(test.length).toBeGreaterThan(0);
@@ -175,7 +173,7 @@ describe("splitEvalSet", () => {
     // But the at-least-1-per-class logic means train might get 1 item per class
     // Actually: max(1, int(len * 1.0)) = max(1, len) = len, so all go to test
     const testTrigger = test.filter((e) => e.should_trigger);
-    const trainTrigger = train.filter((e) => e.should_trigger);
+    const _trainTrigger = train.filter((e) => e.should_trigger);
     expect(testTrigger.length).toBeGreaterThan(0);
     // train may be empty for holdout=1.0
   });
@@ -337,7 +335,7 @@ describe("runLoop", () => {
     ];
 
     // For each query, we track the pass pattern across iterations
-    let iter = 0;
+    let _iter = 0;
     const result = await runLoop({
       evalSet,
       skillPath: join(FIXTURES_DIR, "valid"),
@@ -350,7 +348,7 @@ describe("runLoop", () => {
       model: "test-model",
       cli: "claude",
       injectedRunEval: async (opts) => {
-        iter++;
+        _iter++;
         // All queries pass in all iterations → train always passes,
         // and test always passes. Best score will be perfect.
         return makeAllPassRunEval()(opts);
@@ -548,10 +546,7 @@ describe("runLoop", () => {
 describe("CLI (import.meta.main)", () => {
   function makeSkillFixture(name: string, description: string): string {
     const dir = mkdtempSync(join(tmpdir(), "run-loop-skill-"));
-    writeFileSync(
-      join(dir, "SKILL.md"),
-      `---\nname: ${name}\ndescription: ${description}\n---\n# ${name}\n`,
-    );
+    writeFileSync(join(dir, "SKILL.md"), `---\nname: ${name}\ndescription: ${description}\n---\n# ${name}\n`);
     return dir;
   }
 
@@ -562,11 +557,7 @@ describe("CLI (import.meta.main)", () => {
   }
 
   it("prints usage and exits 1 when required flags are missing", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "run_loop.ts")],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "run_loop.ts")], { encoding: "utf-8" });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Usage:");
   });
@@ -576,14 +567,7 @@ describe("CLI (import.meta.main)", () => {
     try {
       const result = spawnSync(
         "bun",
-        [
-          "run",
-          join(SCRIPTS_DIR, "run_loop.ts"),
-          "--skill-path",
-          skillDir,
-          "--model",
-          "test-model",
-        ],
+        ["run", join(SCRIPTS_DIR, "run_loop.ts"), "--skill-path", skillDir, "--model", "test-model"],
         { encoding: "utf-8" },
       );
       expect(result.status).toBe(1);
@@ -623,14 +607,7 @@ describe("CLI (import.meta.main)", () => {
     try {
       const result = spawnSync(
         "bun",
-        [
-          "run",
-          join(SCRIPTS_DIR, "run_loop.ts"),
-          "--eval-set",
-          evalSetFile,
-          "--skill-path",
-          skillDir,
-        ],
+        ["run", join(SCRIPTS_DIR, "run_loop.ts"), "--eval-set", evalSetFile, "--skill-path", skillDir],
         { encoding: "utf-8" },
       );
       expect(result.status).toBe(1);
@@ -643,9 +620,7 @@ describe("CLI (import.meta.main)", () => {
 
   it("accepts --report none flag without opening browser", () => {
     const skillDir = makeSkillFixture("test-skill", "A test skill description");
-    const evalSetFile = makeEvalSet([
-      { query: "help me with testing", should_trigger: true },
-    ]);
+    const evalSetFile = makeEvalSet([{ query: "help me with testing", should_trigger: true }]);
     try {
       const result = spawnSync(
         "bun",
@@ -686,9 +661,7 @@ describe("CLI (import.meta.main)", () => {
 
   it("accepts --verbose flag without crashing", () => {
     const skillDir = makeSkillFixture("test-skill", "A test skill description");
-    const evalSetFile = makeEvalSet([
-      { query: "help me with testing", should_trigger: true },
-    ]);
+    const evalSetFile = makeEvalSet([{ query: "help me with testing", should_trigger: true }]);
     try {
       const result = spawnSync(
         "bun",

@@ -1,10 +1,10 @@
-import { describe, it, expect } from "bun:test";
-import { readFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { calculateStats, aggregateResults, generateMarkdown } from "../aggregate_benchmark";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Benchmark, BenchmarkRun } from "../aggregate_benchmark";
+import { aggregateResults, calculateStats, generateMarkdown } from "../aggregate_benchmark";
 
 const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 const SCRIPTS_DIR = join(import.meta.dir, "..");
@@ -28,12 +28,12 @@ describe("calculateStats", () => {
   });
 
   it("computes stats for multiple values", () => {
-    const result = calculateStats([0.85, 0.90]);
+    const result = calculateStats([0.85, 0.9]);
     expect(result.mean).toBe(0.875);
     // stddev = sqrt(((0.85-0.875)^2 + (0.90-0.875)^2) / 1) = sqrt(0.00125) ≈ 0.0354
     expect(result.stddev).toBeCloseTo(0.0354, 3);
     expect(result.min).toBe(0.85);
-    expect(result.max).toBe(0.90);
+    expect(result.max).toBe(0.9);
   });
 
   it("rounds results to 4 decimal places", () => {
@@ -47,7 +47,7 @@ describe("calculateStats", () => {
     // 0.55, 0.60, 0.65: mean=0.60
     // variance = ((0.55-0.6)^2 + (0.6-0.6)^2 + (0.65-0.6)^2) / 2 = (0.0025+0+0.0025)/2 = 0.0025
     // stddev = 0.05
-    const result = calculateStats([0.55, 0.60, 0.65]);
+    const result = calculateStats([0.55, 0.6, 0.65]);
     expect(result.mean).toBe(0.6);
     expect(result.stddev).toBe(0.05);
     expect(result.min).toBe(0.55);
@@ -76,11 +76,11 @@ describe("aggregateResults", () => {
     const results: Record<string, any[]> = {
       with_skill: [
         { pass_rate: 0.85, time_seconds: 45.2, tokens: 2500 },
-        { pass_rate: 0.90, time_seconds: 38.7, tokens: 2100 },
+        { pass_rate: 0.9, time_seconds: 38.7, tokens: 2100 },
       ],
       without_skill: [
         { pass_rate: 0.55, time_seconds: 62.1, tokens: 3500 },
-        { pass_rate: 0.60, time_seconds: 58.3, tokens: 3200 },
+        { pass_rate: 0.6, time_seconds: 58.3, tokens: 3200 },
       ],
     };
     const summary: Record<string, any> = aggregateResults(results);
@@ -88,7 +88,7 @@ describe("aggregateResults", () => {
     // with_skill stats
     expect(summary.with_skill.pass_rate.mean).toBe(0.875);
     expect(summary.with_skill.pass_rate.min).toBe(0.85);
-    expect(summary.with_skill.pass_rate.max).toBe(0.90);
+    expect(summary.with_skill.pass_rate.max).toBe(0.9);
     expect(summary.with_skill.time_seconds.mean).toBeCloseTo(41.95, 2);
     expect(summary.with_skill.tokens.mean).toBe(2300);
 
@@ -103,17 +103,17 @@ describe("aggregateResults", () => {
 
   it("handles single config (no baseline/delta)", () => {
     const results: Record<string, any[]> = {
-      with_skill: [{ pass_rate: 0.80, time_seconds: 30.0, tokens: 1000 }],
+      with_skill: [{ pass_rate: 0.8, time_seconds: 30.0, tokens: 1000 }],
     };
     const summary: Record<string, any> = aggregateResults(results);
-    expect(summary.with_skill.pass_rate.mean).toBe(0.80);
+    expect(summary.with_skill.pass_rate.mean).toBe(0.8);
     expect(summary.delta).toBeDefined();
   });
 
   it("handles token field defaults to 0", () => {
     const results: Record<string, any[]> = {
-      with_skill: [{ pass_rate: 0.70, time_seconds: 20.0 }],
-      without_skill: [{ pass_rate: 0.50, time_seconds: 25.0, tokens: 100 }],
+      with_skill: [{ pass_rate: 0.7, time_seconds: 20.0 }],
+      without_skill: [{ pass_rate: 0.5, time_seconds: 25.0, tokens: 100 }],
     };
     const summary: Record<string, any> = aggregateResults(results);
     expect(summary.with_skill.tokens.mean).toBe(0);
@@ -140,12 +140,12 @@ describe("generateMarkdown", () => {
       runs: [],
       run_summary: {
         with_skill: {
-          pass_rate: { mean: 0.875, stddev: 0.0354, min: 0.85, max: 0.90 },
+          pass_rate: { mean: 0.875, stddev: 0.0354, min: 0.85, max: 0.9 },
           time_seconds: { mean: 41.95, stddev: 4.6, min: 38.7, max: 45.2 },
           tokens: { mean: 2300, stddev: 282.8, min: 2100, max: 2500 },
         },
         without_skill: {
-          pass_rate: { mean: 0.575, stddev: 0.0354, min: 0.55, max: 0.60 },
+          pass_rate: { mean: 0.575, stddev: 0.0354, min: 0.55, max: 0.6 },
           time_seconds: { mean: 60.2, stddev: 2.7, min: 58.3, max: 62.1 },
           tokens: { mean: 3350, stddev: 212.1, min: 3200, max: 3500 },
         },
@@ -175,12 +175,12 @@ describe("generateMarkdown", () => {
       runs: [],
       run_summary: {
         new_skill: {
-          pass_rate: { mean: 0.90, stddev: 0.01, min: 0.89, max: 0.91 },
+          pass_rate: { mean: 0.9, stddev: 0.01, min: 0.89, max: 0.91 },
           time_seconds: { mean: 30.0, stddev: 2.0, min: 28.0, max: 32.0 },
           tokens: { mean: 500, stddev: 50, min: 450, max: 550 },
         },
         old_skill: {
-          pass_rate: { mean: 0.50, stddev: 0.02, min: 0.48, max: 0.52 },
+          pass_rate: { mean: 0.5, stddev: 0.02, min: 0.48, max: 0.52 },
           time_seconds: { mean: 60.0, stddev: 5.0, min: 55.0, max: 65.0 },
           tokens: { mean: 1000, stddev: 100, min: 900, max: 1100 },
         },
@@ -217,7 +217,7 @@ describe("generateMarkdown", () => {
       runs: [],
       run_summary: {
         config_a: {
-          pass_rate: { mean: 0.90, stddev: 0, min: 0.90, max: 0.90 },
+          pass_rate: { mean: 0.9, stddev: 0, min: 0.9, max: 0.9 },
           time_seconds: { mean: 30.0, stddev: 0, min: 30.0, max: 30.0 },
           tokens: { mean: 500, stddev: 0, min: 500, max: 500 },
         },
@@ -246,7 +246,7 @@ describe("generateMarkdown", () => {
       runs: [],
       run_summary: {
         config_a: {
-          pass_rate: { mean: 0.90, stddev: 0, min: 0.90, max: 0.90 },
+          pass_rate: { mean: 0.9, stddev: 0, min: 0.9, max: 0.9 },
           time_seconds: { mean: 30.0, stddev: 0, min: 30.0, max: 30.0 },
           tokens: { mean: 500, stddev: 0, min: 500, max: 500 },
         },
@@ -267,11 +267,7 @@ describe("generateMarkdown", () => {
 describe("generateBenchmark (workspace layout)", () => {
   it("loads runs from workspace layout and generates benchmark.json", async () => {
     const { generateBenchmark } = await import("../aggregate_benchmark");
-    const benchmark = generateBenchmark(
-      join(FIXTURES_DIR, "benchmark-workspace"),
-      "test-skill",
-      "/path/to/skill",
-    );
+    const benchmark = generateBenchmark(join(FIXTURES_DIR, "benchmark-workspace"), "test-skill", "/path/to/skill");
 
     expect(benchmark.metadata.skill_name).toBe("test-skill");
     expect(benchmark.metadata.skill_path).toBe("/path/to/skill");
@@ -294,9 +290,7 @@ describe("generateBenchmark (workspace layout)", () => {
 
   it("extracts expectations and notes from grading.json", async () => {
     const { generateBenchmark } = await import("../aggregate_benchmark");
-    const benchmark = generateBenchmark(
-      join(FIXTURES_DIR, "benchmark-workspace"),
-    );
+    const benchmark = generateBenchmark(join(FIXTURES_DIR, "benchmark-workspace"));
 
     // First run should have expectations and notes
     const firstWithSkill = benchmark.runs.find(
@@ -320,9 +314,7 @@ describe("generateBenchmark (workspace layout)", () => {
 
   it("uses eval_id from eval_metadata.json when available", async () => {
     const { generateBenchmark } = await import("../aggregate_benchmark");
-    const benchmark = generateBenchmark(
-      join(FIXTURES_DIR, "benchmark-workspace"),
-    );
+    const benchmark = generateBenchmark(join(FIXTURES_DIR, "benchmark-workspace"));
 
     const run = benchmark.runs[0];
     expect(run.eval_id).toBe(100);
@@ -336,9 +328,7 @@ describe("generateBenchmark (workspace layout)", () => {
 describe("generateBenchmark (legacy layout)", () => {
   it("loads runs from legacy runs/ subdirectory", async () => {
     const { generateBenchmark } = await import("../aggregate_benchmark");
-    const benchmark = generateBenchmark(
-      join(FIXTURES_DIR, "benchmark-legacy"),
-    );
+    const benchmark = generateBenchmark(join(FIXTURES_DIR, "benchmark-legacy"));
 
     expect(benchmark.runs.length).toBe(2); // 1 with_skill + 1 without_skill
 
@@ -346,7 +336,7 @@ describe("generateBenchmark (legacy layout)", () => {
     const wos = benchmark.run_summary.without_skill as Record<string, any>;
 
     expect(ws.pass_rate.mean).toBe(0.75);
-    expect(wos.pass_rate.mean).toBe(0.40);
+    expect(wos.pass_rate.mean).toBe(0.4);
     expect((benchmark.run_summary.delta as any).pass_rate).toBe("+0.35");
   });
 });
@@ -359,11 +349,7 @@ describe("CLI (import.meta.main)", () => {
   const workspaceFixture = join(FIXTURES_DIR, "benchmark-workspace");
 
   it("prints usage and exits 1 when no directory arg is provided", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "aggregate_benchmark.ts")],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "aggregate_benchmark.ts")], { encoding: "utf-8" });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Usage:");
   });
@@ -402,11 +388,15 @@ describe("CLI (import.meta.main)", () => {
       const result = spawnSync(
         "bun",
         [
-          "run", join(SCRIPTS_DIR, "aggregate_benchmark.ts"),
+          "run",
+          join(SCRIPTS_DIR, "aggregate_benchmark.ts"),
           workspaceFixture,
-          "--skill-name", "my-skill",
-          "--skill-path", "/custom/path",
-          "-o", outJson,
+          "--skill-name",
+          "my-skill",
+          "--skill-path",
+          "/custom/path",
+          "-o",
+          outJson,
         ],
         { encoding: "utf-8" },
       );
@@ -442,11 +432,9 @@ describe("CLI (import.meta.main)", () => {
   });
 
   it("exits with error for non-existent directory", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "aggregate_benchmark.ts"), "/nonexistent/path"],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "aggregate_benchmark.ts"), "/nonexistent/path"], {
+      encoding: "utf-8",
+    });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Directory not found");
   });

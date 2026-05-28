@@ -82,14 +82,11 @@ function scoreClass(correct: number, total: number): string {
   return "score-bad";
 }
 
-export function generateHtml(
-  data: LoopData,
-  options?: { autoRefresh?: boolean; skillName?: string }
-): string {
+export function generateHtml(data: LoopData, options?: { autoRefresh?: boolean; skillName?: string }): string {
   const autoRefresh = options?.autoRefresh ?? false;
   const skillName = options?.skillName ?? "";
   const history = data.history || [];
-  const titlePrefix = skillName ? escapeHtml(skillName + " \u2014 ") : "";
+  const titlePrefix = skillName ? escapeHtml(`${skillName} \u2014 `) : "";
 
   // Get all unique queries from train and test sets
   const trainQueries: { query: string; should_trigger: boolean }[] = [];
@@ -306,10 +303,10 @@ ${refreshTag}    <title>${titlePrefix}Skill Description Optimization</title>
   // Add rows for each iteration
   for (const h of history) {
     const iteration = h.iteration;
-    const trainPassed = h.train_passed ?? h.passed ?? 0;
-    const trainTotal = h.train_total ?? h.total ?? 0;
-    const testPassed = h.test_passed;
-    const testTotal = h.test_total;
+    const _trainPassed = h.train_passed ?? h.passed ?? 0;
+    const _trainTotal = h.train_total ?? h.total ?? 0;
+    const _testPassed = h.test_passed;
+    const _testTotal = h.test_total;
     const description = h.description || "";
     const trainResults = h.train_results || h.results || [];
     const testResults = h.test_results || [];
@@ -339,23 +336,27 @@ ${refreshTag}    <title>${titlePrefix}Skill Description Optimization</title>
 `);
 
     for (const qinfo of trainQueries) {
-      const r = trainByQuery[qinfo.query] || {} as QueryResult;
+      const r = trainByQuery[qinfo.query] || ({} as QueryResult);
       const didPass = r.pass ?? false;
       const triggers = r.triggers ?? 0;
       const runs = r.runs ?? 0;
       const icon = didPass ? "✓" : "✗";
       const cssClass = didPass ? "pass" : "fail";
-      parts.push(`                <td class="result ${cssClass}">${icon}<span class="rate">${triggers}/${runs}</span></td>\n`);
+      parts.push(
+        `                <td class="result ${cssClass}">${icon}<span class="rate">${triggers}/${runs}</span></td>\n`,
+      );
     }
 
     for (const qinfo of testQueries) {
-      const r = testByQuery[qinfo.query] || {} as QueryResult;
+      const r = testByQuery[qinfo.query] || ({} as QueryResult);
       const didPass = r.pass ?? false;
       const triggers = r.triggers ?? 0;
       const runs = r.runs ?? 0;
       const icon = didPass ? "✓" : "✗";
       const cssClass = didPass ? "pass" : "fail";
-      parts.push(`                <td class="result test-result ${cssClass}">${icon}<span class="rate">${triggers}/${runs}</span></td>\n`);
+      parts.push(
+        `                <td class="result test-result ${cssClass}">${icon}<span class="rate">${triggers}/${runs}</span></td>\n`,
+      );
     }
 
     parts.push(`            </tr>\n`);

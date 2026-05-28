@@ -14,8 +14,8 @@
     "errors_encountered": 1
   },
   "expectations": [
-    {"text": "Handles edge case A", "passed": true, "evidence": "correct output format and value"},
-    {"text": "Handles edge case B", "passed": false, "evidence": "returned wrong type"}
+    { "text": "Handles edge case A", "passed": true, "evidence": "correct output format and value" },
+    { "text": "Handles edge case B", "passed": false, "evidence": "returned wrong type" }
   ],
   "user_notes_summary": {
     "uncertainties": ["Edge case B may need alternative approach"],

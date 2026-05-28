@@ -9,9 +9,9 @@
  *     bun run run_eval.ts --eval-set <path> --skill-path <path> [options]
  */
 
-import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from "node:fs";
-import { join, resolve } from "node:path";
 import { spawn, spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { parseSkillMd } from "./utils";
 
 // =============================================================================
@@ -71,7 +71,7 @@ export function findProjectRoot(startDir?: string): string {
 
   // Walk up from current directory
   for (let i = parts.length; i >= 0; i--) {
-    const dir = "/" + parts.slice(0, i).join("/");
+    const dir = `/${parts.slice(0, i).join("/")}`;
     if (existsSync(join(dir, ".claude")) || existsSync(join(dir, ".opencode"))) {
       return dir;
     }
@@ -113,10 +113,7 @@ export function detectCli(): string {
  * returns whether the skill was triggered.
  * Implements the same state machine as the Python version.
  */
-export function parseClaudeStreamResponse(
-  lines: string[],
-  cleanName: string,
-): boolean {
+export function parseClaudeStreamResponse(lines: string[], cleanName: string): boolean {
   let triggered = false;
   let pendingToolName: string | null = null;
   let accumulatedJson = "";
@@ -193,12 +190,7 @@ export function parseClaudeStreamResponse(
  * Pure function: takes stdout, stderr, clean name, and skill name,
  * returns whether the skill was triggered (referenced in output).
  */
-export function parseOpencodeResponse(
-  stdout: string,
-  stderr: string,
-  cleanName: string,
-  skillName: string,
-): boolean {
+export function parseOpencodeResponse(stdout: string, stderr: string, cleanName: string, skillName: string): boolean {
   const output = stdout + stderr;
   return output.includes(cleanName) || output.includes(skillName);
 }
@@ -235,12 +227,7 @@ function runClaude(
       `This skill handles: ${skillDescription}\n`;
     writeFileSync(commandFile, commandContent);
 
-    const args = [
-      "-p", query,
-      "--output-format", "stream-json",
-      "--verbose",
-      "--include-partial-messages",
-    ];
+    const args = ["-p", query, "--output-format", "stream-json", "--verbose", "--include-partial-messages"];
     if (model) {
       args.push("--model", model);
     }
@@ -376,12 +363,7 @@ function runOpencode(
 
     proc.on("close", () => {
       if (!resolved) {
-        const triggered = parseOpencodeResponse(
-          stdout,
-          stderr,
-          cleanName,
-          skillName,
-        );
+        const triggered = parseOpencodeResponse(stdout, stderr, cleanName, skillName);
         finalize(triggered);
       }
     });
@@ -444,8 +426,7 @@ export async function runEval(options: RunEvalOptions): Promise<EvalOutput> {
   // Allow dependency-injected runQuery for testing
   const queryRunner =
     injectedRunQuery ||
-    ((query: string) =>
-      runSingleQuery(query, skillName, description, timeout, projectRoot, cli, model));
+    ((query: string) => runSingleQuery(query, skillName, description, timeout, projectRoot, cli, model));
 
   // Build all tasks
   interface Task {
@@ -494,18 +475,17 @@ export async function runEval(options: RunEvalOptions): Promise<EvalOutput> {
     if (!triggersByQuery.has(result.query)) {
       triggersByQuery.set(result.query, []);
     }
-    triggersByQuery.get(result.query)!.push(result.triggered);
+    triggersByQuery.get(result.query)?.push(result.triggered);
   }
 
   // Compute results
   const evalResults: EvalResult[] = [];
   for (const [query, triggers] of triggersByQuery) {
-    const item = itemsByQuery.get(query)!;
+    const item = itemsByQuery.get(query);
+    if (!item) continue;
     const triggerRate = triggers.filter(Boolean).length / triggers.length;
     const shouldTrigger = item.should_trigger;
-    const didPass = shouldTrigger
-      ? triggerRate >= triggerThreshold
-      : triggerRate < triggerThreshold;
+    const didPass = shouldTrigger ? triggerRate >= triggerThreshold : triggerRate < triggerThreshold;
 
     evalResults.push({
       query,
@@ -539,9 +519,7 @@ export async function runEval(options: RunEvalOptions): Promise<EvalOutput> {
 if (import.meta.main) {
   const args = process.argv.slice(2);
 
-  function getArg(
-    flag: string,
-  ): string | undefined {
+  function getArg(flag: string): string | undefined {
     const idx = args.indexOf(flag);
     if (idx !== -1 && idx + 1 < args.length) {
       return args[idx + 1];
@@ -557,9 +535,7 @@ if (import.meta.main) {
   const skillPath = getArg("--skill-path");
 
   if (!evalSetPath || !skillPath) {
-    console.error(
-      "Usage: bun run run_eval.ts --eval-set <path> --skill-path <path> [options]",
-    );
+    console.error("Usage: bun run run_eval.ts --eval-set <path> --skill-path <path> [options]");
     console.error("");
     console.error("Options:");
     console.error("  --eval-set <path>          Path to eval set JSON file (required)");
@@ -605,9 +581,7 @@ if (import.meta.main) {
   const numWorkers = parseInt(getArg("--num-workers") || "10", 10);
   const timeout = parseInt(getArg("--timeout") || "30", 10);
   const runsPerQuery = parseInt(getArg("--runs-per-query") || "3", 10);
-  const triggerThreshold = parseFloat(
-    getArg("--trigger-threshold") || "0.5",
-  );
+  const triggerThreshold = parseFloat(getArg("--trigger-threshold") || "0.5");
   const model = getArg("--model");
   const verbose = hasFlag("--verbose");
 
@@ -627,22 +601,22 @@ if (import.meta.main) {
     triggerThreshold,
     cli,
     model,
-  }).then((output) => {
-    if (verbose) {
-      const summary = output.summary;
-      console.error(`Results: ${summary.passed}/${summary.total} passed`);
-      for (const r of output.results) {
-        const status = r.pass ? "PASS" : "FAIL";
-        const rateStr = `${r.triggers}/${r.runs}`;
-        console.error(
-          `  [${status}] rate=${rateStr} expected=${r.should_trigger}: ${r.query.slice(0, 70)}`,
-        );
+  })
+    .then((output) => {
+      if (verbose) {
+        const summary = output.summary;
+        console.error(`Results: ${summary.passed}/${summary.total} passed`);
+        for (const r of output.results) {
+          const status = r.pass ? "PASS" : "FAIL";
+          const rateStr = `${r.triggers}/${r.runs}`;
+          console.error(`  [${status}] rate=${rateStr} expected=${r.should_trigger}: ${r.query.slice(0, 70)}`);
+        }
       }
-    }
-    console.log(JSON.stringify(output, null, 2));
-    process.exit(0);
-  }).catch((e) => {
-    console.error(`Error: ${e}`);
-    process.exit(1);
-  });
+      console.log(JSON.stringify(output, null, 2));
+      process.exit(0);
+    })
+    .catch((e) => {
+      console.error(`Error: ${e}`);
+      process.exit(1);
+    });
 }
