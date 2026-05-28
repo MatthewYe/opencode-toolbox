@@ -1,10 +1,10 @@
-import { describe, it, expect } from "bun:test";
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { generateHtml, findRuns, embedFile, loadPreviousIteration, startServer } from "../generate_review";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Run } from "../generate_review";
+import { embedFile, findRuns, generateHtml, loadPreviousIteration, startServer } from "../generate_review";
 
 const EVAL_VIEWER_DIR = join(import.meta.dir, "..");
 
@@ -132,10 +132,7 @@ describe("findRuns", () => {
     try {
       const runDir = join(tmpDir, "eval-1", "run-1");
       mkdirSync(join(runDir, "outputs"), { recursive: true });
-      writeFileSync(
-        join(runDir, "transcript.md"),
-        "## Eval Prompt\n\nMy test prompt\n\n## Next section",
-      );
+      writeFileSync(join(runDir, "transcript.md"), "## Eval Prompt\n\nMy test prompt\n\n## Next section");
 
       const runs = findRuns(tmpDir);
       expect(runs[0].prompt).toBe("My test prompt");
@@ -162,10 +159,7 @@ describe("findRuns", () => {
     try {
       const runDir = join(tmpDir, "eval-1", "run-1");
       mkdirSync(join(runDir, "outputs"), { recursive: true });
-      writeFileSync(
-        join(runDir, "grading.json"),
-        JSON.stringify({ summary: { pass_rate: 0.8 }, expectations: [] }),
-      );
+      writeFileSync(join(runDir, "grading.json"), JSON.stringify({ summary: { pass_rate: 0.8 }, expectations: [] }));
 
       const runs = findRuns(tmpDir);
       expect(runs[0].grading).not.toBeNull();
@@ -376,8 +370,8 @@ describe("loadPreviousIteration", () => {
         }),
       );
       const result = loadPreviousIteration(tmpDir);
-      expect(result["r1"].feedback).toBe("good job");
-      expect(result["r2"].feedback).toBe("needs work");
+      expect(result.r1.feedback).toBe("good job");
+      expect(result.r2.feedback).toBe("needs work");
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -399,11 +393,11 @@ describe("loadPreviousIteration", () => {
       const result = loadPreviousIteration(tmpDir);
       // Empty/whitespace feedback entries are filtered out by Python's .strip() check
       // Only r3 with "valid" feedback should appear
-      expect(result["r3"]).toBeDefined();
-      expect(result["r3"].feedback).toBe("valid");
+      expect(result.r3).toBeDefined();
+      expect(result.r3.feedback).toBe("valid");
       // r1 and r2 had no runs and empty feedback, so they should not be present
-      expect(result["r1"]).toBeUndefined();
-      expect(result["r2"]).toBeUndefined();
+      expect(result.r1).toBeUndefined();
+      expect(result.r2).toBeUndefined();
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -436,9 +430,7 @@ describe("byte-identical with Python", () => {
         id: "run-1",
         prompt: "test prompt",
         eval_id: 1,
-        outputs: [
-          { name: "out.txt", type: "text", content: "result" },
-        ],
+        outputs: [{ name: "out.txt", type: "text", content: "result" }],
         grading: null,
       },
     ];
@@ -465,7 +457,7 @@ describe("byte-identical with Python", () => {
     const tmpDir = mkdtempSync(join(tmpdir(), "eval-review-test-"));
     try {
       const path = join(tmpDir, "test.png");
-      const rawBytes = Buffer.from([0x89, 0x50, 0x4E, 0x47]);
+      const rawBytes = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
       writeFileSync(path, rawBytes);
 
       const result = embedFile(path);
@@ -510,21 +502,15 @@ describe("byte-identical with Python", () => {
 
 describe("CLI (import.meta.main)", () => {
   it("prints usage to stderr and exits 1 when no workspace is provided", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(EVAL_VIEWER_DIR, "generate_review.ts")],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(EVAL_VIEWER_DIR, "generate_review.ts")], { encoding: "utf-8" });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Usage:");
   });
 
   it("exits 1 when workspace does not exist", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), "/nonexistent/path/xyz"],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), "/nonexistent/path/xyz"], {
+      encoding: "utf-8",
+    });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("not a directory");
   });
@@ -532,11 +518,9 @@ describe("CLI (import.meta.main)", () => {
   it("exits 1 when workspace has no runs", () => {
     const tmpDir = mkdtempSync(join(tmpdir(), "eval-review-test-"));
     try {
-      const result = spawnSync(
-        "bun",
-        ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir],
-        { encoding: "utf-8" },
-      );
+      const result = spawnSync("bun", ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir], {
+        encoding: "utf-8",
+      });
       expect(result.status).toBe(1);
       expect(result.stderr).toContain("No runs found");
     } finally {
@@ -579,11 +563,9 @@ describe("CLI (import.meta.main)", () => {
       writeFileSync(join(runDir, "outputs", "result.txt"), "test");
 
       const staticPath = join(tmpDir, "output.html");
-      const result = spawnSync(
-        "bun",
-        ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "-s", staticPath],
-        { encoding: "utf-8" },
-      );
+      const result = spawnSync("bun", ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "-s", staticPath], {
+        encoding: "utf-8",
+      });
       expect(result.status).toBe(0);
       expect(existsSync(staticPath)).toBe(true);
     } finally {
@@ -601,13 +583,7 @@ describe("CLI (import.meta.main)", () => {
       const staticPath = join(tmpDir, "output.html");
       const result = spawnSync(
         "bun",
-        [
-          "run",
-          join(EVAL_VIEWER_DIR, "generate_review.ts"),
-          tmpDir,
-          "-s", staticPath,
-          "-n", "My Test Skill",
-        ],
+        ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "-s", staticPath, "-n", "My Test Skill"],
         { encoding: "utf-8" },
       );
       expect(result.status).toBe(0);
@@ -657,13 +633,7 @@ describe("CLI (import.meta.main)", () => {
       const staticPath = join(tmpDir, "output.html");
       const result = spawnSync(
         "bun",
-        [
-          "run",
-          join(EVAL_VIEWER_DIR, "generate_review.ts"),
-          tmpDir,
-          "-s", staticPath,
-          "--benchmark", benchmarkPath,
-        ],
+        ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "-s", staticPath, "--benchmark", benchmarkPath],
         { encoding: "utf-8" },
       );
       expect(result.status).toBe(0);
@@ -695,9 +665,7 @@ describe("CLI (import.meta.main)", () => {
       writeFileSync(
         join(prevWs, "feedback.json"),
         JSON.stringify({
-          reviews: [
-            { run_id: "eval-1-run-1", feedback: "good previous work" },
-          ],
+          reviews: [{ run_id: "eval-1-run-1", feedback: "good previous work" }],
         }),
       );
 
@@ -708,8 +676,10 @@ describe("CLI (import.meta.main)", () => {
           "run",
           join(EVAL_VIEWER_DIR, "generate_review.ts"),
           currentWs,
-          "-s", staticPath,
-          "--previous-workspace", prevWs,
+          "-s",
+          staticPath,
+          "--previous-workspace",
+          prevWs,
         ],
         { encoding: "utf-8" },
       );
@@ -737,11 +707,9 @@ describe("CLI (import.meta.main)", () => {
 
       // Static mode exercises killPort code path (port 3117 passed but not listened)
       const staticPath = join(tmpDir, "output.html");
-      const result = spawnSync(
-        "bun",
-        ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "-s", staticPath],
-        { encoding: "utf-8" },
-      );
+      const result = spawnSync("bun", ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "-s", staticPath], {
+        encoding: "utf-8",
+      });
       expect(result.status).toBe(0);
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
@@ -767,18 +735,27 @@ describe("killPort", () => {
     const testPort = 25999;
 
     // Start a child Node process that creates an HTTP server on testPort
-    const child = spawn("node", [
-      "-e",
-      `const http=require("http"); const s=http.createServer(()=>{}); s.listen(${testPort}, ()=>{ setInterval(()=>{}, 10000); });`,
-    ], { stdio: "pipe" });
+    const child = spawn(
+      "node",
+      [
+        "-e",
+        `const http=require("http"); const s=http.createServer(()=>{}); s.listen(${testPort}, ()=>{ setInterval(()=>{}, 10000); });`,
+      ],
+      { stdio: "pipe" },
+    );
 
     // Wait for the child server to start
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("server startup timeout")), 5000);
       child.stderr?.on("data", () => {});
       // Give it a moment to start listening
-      setTimeout(() => { clearTimeout(timeout); resolve(); }, 1000);
-    }).catch(() => { /* server might already be ready */ });
+      setTimeout(() => {
+        clearTimeout(timeout);
+        resolve();
+      }, 1000);
+    }).catch(() => {
+      /* server might already be ready */
+    });
 
     // Now killPort should find and kill the child process
     expect(() => killPort(testPort)).not.toThrow();
@@ -795,15 +772,23 @@ describe("killPort", () => {
         resolve();
       });
       s.on("error", (err: NodeJS.ErrnoException) => {
-        if (err.code === "EADDRINUSE") resolve(); // port still busy, but that's ok for this test
+        if (err.code === "EADDRINUSE")
+          resolve(); // port still busy, but that's ok for this test
         else resolve();
       });
-      setTimeout(() => { try { s.close(); } catch {} resolve(); }, 2000);
+      setTimeout(() => {
+        try {
+          s.close();
+        } catch {}
+        resolve();
+      }, 2000);
     });
 
     // Clean up — kill the child if still alive
     if (child.exitCode === null) {
-      try { child.kill("SIGKILL"); } catch {}
+      try {
+        child.kill("SIGKILL");
+      } catch {}
     }
   }, 15000);
 });
@@ -862,9 +847,12 @@ describe("API endpoints", () => {
       writeFileSync(join(runDir, "outputs", "result.txt"), "test");
 
       const feedbackPath = join(tmpDir, "feedback.json");
-      writeFileSync(feedbackPath, JSON.stringify({
-        reviews: [{ run_id: "r1", feedback: "nice work" }],
-      }));
+      writeFileSync(
+        feedbackPath,
+        JSON.stringify({
+          reviews: [{ run_id: "r1", feedback: "nice work" }],
+        }),
+      );
 
       const { server, port } = await startServerAndWait({
         workspace: tmpDir,
@@ -876,7 +864,7 @@ describe("API endpoints", () => {
       const resp = await fetch(`http://127.0.0.1:${port}/api/feedback`);
       expect(resp.status).toBe(200);
 
-      const data = await resp.json() as { reviews: Array<{ feedback: string }> };
+      const data = (await resp.json()) as { reviews: Array<{ feedback: string }> };
       expect(data.reviews).toHaveLength(1);
       expect(data.reviews[0].feedback).toBe("nice work");
 
@@ -908,7 +896,7 @@ describe("API endpoints", () => {
       });
       expect(resp.status).toBe(200);
 
-      const data = await resp.json() as { ok: boolean };
+      const data = (await resp.json()) as { ok: boolean };
       expect(data.ok).toBe(true);
 
       // Verify file was written
@@ -943,7 +931,7 @@ describe("API endpoints", () => {
       });
       expect(resp.status).toBe(500);
 
-      const data = await resp.json() as { error?: string };
+      const data = (await resp.json()) as { error?: string };
       expect(data.error).toBeDefined();
 
       server.close();
@@ -1077,11 +1065,9 @@ describe("HTTP server (AC2)", () => {
       writeFileSync(join(runDir, "outputs", "result.txt"), "test");
 
       const staticPath = join(tmpDir, "output.html");
-      const result = spawnSync(
-        "bun",
-        ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "-s", staticPath],
-        { encoding: "utf-8" },
-      );
+      const result = spawnSync("bun", ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "-s", staticPath], {
+        encoding: "utf-8",
+      });
       expect(result.status).toBe(0);
       expect(result.stdout).toContain("Static viewer written");
 
@@ -1152,16 +1138,27 @@ describe("multi-file-type HTML generation (TypeScript)", () => {
       writeFileSync(join(runDir, "outputs", "sheet.xlsx"), Buffer.from("PK fake xlsx content"));
 
       // Set up eval_metadata
-      writeFileSync(join(runDir, "eval_metadata.json"), JSON.stringify({
-        prompt: "Test prompt for multi-type generation",
-        eval_id: 1,
-      }));
+      writeFileSync(
+        join(runDir, "eval_metadata.json"),
+        JSON.stringify({
+          prompt: "Test prompt for multi-type generation",
+          eval_id: 1,
+        }),
+      );
 
       // Generate with TypeScript
       const tsOutput = join(tmpDir, "ts-output.html");
       const tsResult = spawnSync(
         "bun",
-        ["run", join(EVAL_VIEWER_DIR, "generate_review.ts"), tmpDir, "--static", tsOutput, "--skill-name", "multitype-test"],
+        [
+          "run",
+          join(EVAL_VIEWER_DIR, "generate_review.ts"),
+          tmpDir,
+          "--static",
+          tsOutput,
+          "--skill-name",
+          "multitype-test",
+        ],
         { encoding: "utf-8" },
       );
       expect(tsResult.status).toBe(0);

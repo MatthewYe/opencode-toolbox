@@ -1,6 +1,6 @@
 {
   "summary": {
-    "pass_rate": 0.60,
+    "pass_rate": 0.6,
     "passed": 12,
     "failed": 8,
     "total": 20
@@ -14,8 +14,8 @@
     "errors_encountered": 2
   },
   "expectations": [
-    {"text": "Handles edge case A", "passed": true, "evidence": "worked after prompt fix"},
-    {"text": "Handles edge case B", "passed": false, "evidence": "still fails on parsing"}
+    { "text": "Handles edge case A", "passed": true, "evidence": "worked after prompt fix" },
+    { "text": "Handles edge case B", "passed": false, "evidence": "still fails on parsing" }
   ],
   "user_notes_summary": {
     "uncertainties": [],

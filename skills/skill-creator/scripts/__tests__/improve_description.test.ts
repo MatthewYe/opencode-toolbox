@@ -1,16 +1,8 @@
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from "bun:test";
-import {
-  mkdtempSync,
-  writeFileSync,
-  rmSync,
-  mkdirSync,
-  existsSync,
-  readFileSync,
-  readdirSync,
-} from "node:fs";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { EvalResults } from "../improve_description";
 
 const SCRIPTS_DIR = join(import.meta.dir, "..");
@@ -35,37 +27,27 @@ describe("parseNewDescription", () => {
   });
 
   it("handles multiline descriptions", () => {
-    const result = parseNewDescription(
-      "<new_description>\nFirst line\nSecond line\nThird line\n</new_description>",
-    );
+    const result = parseNewDescription("<new_description>\nFirst line\nSecond line\nThird line\n</new_description>");
     expect(result).toBe("First line\nSecond line\nThird line");
   });
 
   it("strips surrounding whitespace from extracted text", () => {
-    const result = parseNewDescription(
-      "<new_description>  \n  padded text  \n  </new_description>",
-    );
+    const result = parseNewDescription("<new_description>  \n  padded text  \n  </new_description>");
     expect(result).toBe("padded text");
   });
 
   it("strips surrounding double quotes like Python .strip('\"')", () => {
-    const result = parseNewDescription(
-      '<new_description>"quoted description"</new_description>',
-    );
+    const result = parseNewDescription('<new_description>"quoted description"</new_description>');
     expect(result).toBe("quoted description");
   });
 
   it("does not strip internal quotes", () => {
-    const result = parseNewDescription(
-      '<new_description>Use "skill" for X when Y</new_description>',
-    );
+    const result = parseNewDescription('<new_description>Use "skill" for X when Y</new_description>');
     expect(result).toBe('Use "skill" for X when Y');
   });
 
   it("returns raw text when no tags found", () => {
-    const result = parseNewDescription(
-      "Some response without any xml tags at all",
-    );
+    const result = parseNewDescription("Some response without any xml tags at all");
     expect(result).toBe("Some response without any xml tags at all");
   });
 
@@ -102,9 +84,7 @@ describe("buildPrompt", () => {
       { query: "help me test", triggers: 1, runs: 3 },
       { query: "run tests now", triggers: 0, runs: 3 },
     ],
-    falseTriggers: [
-      { query: "write code", triggers: 3, runs: 3 },
-    ],
+    falseTriggers: [{ query: "write code", triggers: 3, runs: 3 }],
     trainScore: "2/5",
     testScore: null,
     history: [] as Array<Record<string, unknown>>,
@@ -175,17 +155,13 @@ describe("buildPrompt", () => {
         train_total: 5,
         test_passed: 4,
         test_total: 5,
-        results: [
-          { query: "help me test", pass: false, triggers: 1, runs: 3 },
-        ],
+        results: [{ query: "help me test", pass: false, triggers: 1, runs: 3 }],
       },
       {
         description: "Second attempt description",
         passed: 2,
         total: 5,
-        results: [
-          { query: "write code", pass: false, triggers: 3, runs: 3 },
-        ],
+        results: [{ query: "write code", pass: false, triggers: 3, runs: 3 }],
       },
     ];
     const prompt = buildPrompt({ ...basicInput, history });
@@ -538,17 +514,14 @@ describe("improveDescription — logging", () => {
   const evalResults: EvalResults = {
     skill_name: "test-skill",
     description: "A test skill description",
-    results: [
-      { query: "help me test", should_trigger: true, triggers: 1, runs: 3, pass: false, trigger_rate: 0.33 },
-    ],
+    results: [{ query: "help me test", should_trigger: true, triggers: 1, runs: 3, pass: false, trigger_rate: 0.33 }],
     summary: { total: 1, passed: 0, failed: 1 },
   };
 
   it("writes transcript JSON to log_dir when provided", async () => {
     const logDir = mkdtempSync(join(tmpdir(), "improve-log-"));
     try {
-      const mockCallCli = () =>
-        Promise.resolve("<new_description>Improved description</new_description>");
+      const mockCallCli = () => Promise.resolve("<new_description>Improved description</new_description>");
 
       await improveDescription({
         skillName: "test-skill",
@@ -581,8 +554,7 @@ describe("improveDescription — logging", () => {
   it("creates log_dir if it does not exist", async () => {
     const logDir = join(tmpdir(), `improve-log-new-${Date.now()}`);
     try {
-      const mockCallCli = () =>
-        Promise.resolve("<new_description>test</new_description>");
+      const mockCallCli = () => Promise.resolve("<new_description>test</new_description>");
 
       await improveDescription({
         skillName: "test-skill",
@@ -603,8 +575,7 @@ describe("improveDescription — logging", () => {
   });
 
   it("does NOT write log file when log_dir is not provided", async () => {
-    const mockCallCli = () =>
-      Promise.resolve("<new_description>test</new_description>");
+    const mockCallCli = () => Promise.resolve("<new_description>test</new_description>");
 
     // Should not throw
     await improveDescription({
@@ -622,8 +593,7 @@ describe("improveDescription — logging", () => {
   it("uses 'unknown' as iteration in log filename when not specified", async () => {
     const logDir = mkdtempSync(join(tmpdir(), "improve-log-"));
     try {
-      const mockCallCli = () =>
-        Promise.resolve("<new_description>test</new_description>");
+      const mockCallCli = () => Promise.resolve("<new_description>test</new_description>");
 
       await improveDescription({
         skillName: "test-skill",
@@ -701,8 +671,8 @@ describe("CLI (import.meta.main)", () => {
     // Check if an AI CLI is available
     const cResult = spawnSync("which", ["claude"], { encoding: "utf-8" });
     const oResult = spawnSync("which", ["opencode"], { encoding: "utf-8" });
-    cliAvailable = (cResult.status === 0 && !!cResult.stdout?.trim()) ||
-                   (oResult.status === 0 && !!oResult.stdout?.trim());
+    cliAvailable =
+      (cResult.status === 0 && !!cResult.stdout?.trim()) || (oResult.status === 0 && !!oResult.stdout?.trim());
   });
 
   beforeEach(() => {
@@ -729,16 +699,16 @@ describe("CLI (import.meta.main)", () => {
   });
 
   afterEach(() => {
-    try { rmSync(tmpSkillDir, { recursive: true, force: true }); } catch {}
-    try { rmSync(tmpEvalResults); } catch {}
+    try {
+      rmSync(tmpSkillDir, { recursive: true, force: true });
+    } catch {}
+    try {
+      rmSync(tmpEvalResults);
+    } catch {}
   });
 
   it("prints usage and exits 1 when --eval-results is missing", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "improve_description.ts")],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "improve_description.ts")], { encoding: "utf-8" });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Usage:");
   });
@@ -759,8 +729,10 @@ describe("CLI (import.meta.main)", () => {
       [
         "run",
         join(SCRIPTS_DIR, "improve_description.ts"),
-        "--eval-results", tmpEvalResults,
-        "--skill-path", tmpSkillDir,
+        "--eval-results",
+        tmpEvalResults,
+        "--skill-path",
+        tmpSkillDir,
       ],
       { encoding: "utf-8" },
     );
@@ -774,9 +746,12 @@ describe("CLI (import.meta.main)", () => {
       [
         "run",
         join(SCRIPTS_DIR, "improve_description.ts"),
-        "--eval-results", tmpEvalResults,
-        "--skill-path", "/nonexistent/path",
-        "--model", "claude-sonnet-4-20250514",
+        "--eval-results",
+        tmpEvalResults,
+        "--skill-path",
+        "/nonexistent/path",
+        "--model",
+        "claude-sonnet-4-20250514",
       ],
       { encoding: "utf-8" },
     );
@@ -792,9 +767,12 @@ describe("CLI (import.meta.main)", () => {
       [
         "run",
         join(SCRIPTS_DIR, "improve_description.ts"),
-        "--eval-results", tmpEvalResults,
-        "--skill-path", tmpSkillDir,
-        "--model", "claude-sonnet-4-20250514",
+        "--eval-results",
+        tmpEvalResults,
+        "--skill-path",
+        tmpSkillDir,
+        "--model",
+        "claude-sonnet-4-20250514",
       ],
       { encoding: "utf-8", timeout: 3000 },
     );
@@ -818,20 +796,21 @@ describe("CLI (import.meta.main)", () => {
     if (!cliAvailable) return; // Skip — requires AI CLI
 
     const historyFile = join(tmpdir(), `history-${Date.now()}.json`);
-    writeFileSync(
-      historyFile,
-      JSON.stringify([{ description: "Old desc", passed: 2, total: 5, results: [] }]),
-    );
+    writeFileSync(historyFile, JSON.stringify([{ description: "Old desc", passed: 2, total: 5, results: [] }]));
     try {
       const result = spawnSync(
         "bun",
         [
           "run",
           join(SCRIPTS_DIR, "improve_description.ts"),
-          "--eval-results", tmpEvalResults,
-          "--skill-path", tmpSkillDir,
-          "--model", "claude-sonnet-4-20250514",
-          "--history", historyFile,
+          "--eval-results",
+          tmpEvalResults,
+          "--skill-path",
+          tmpSkillDir,
+          "--model",
+          "claude-sonnet-4-20250514",
+          "--history",
+          historyFile,
         ],
         { encoding: "utf-8", timeout: 3000 },
       );
@@ -857,10 +836,14 @@ describe("CLI (import.meta.main)", () => {
       [
         "run",
         join(SCRIPTS_DIR, "improve_description.ts"),
-        "--eval-results", tmpEvalResults,
-        "--skill-path", tmpSkillDir,
-        "--model", "claude-sonnet-4-20250514",
-        "--cli", "claude",
+        "--eval-results",
+        tmpEvalResults,
+        "--skill-path",
+        tmpSkillDir,
+        "--model",
+        "claude-sonnet-4-20250514",
+        "--cli",
+        "claude",
       ],
       { encoding: "utf-8", timeout: 3000 },
     );
@@ -878,9 +861,12 @@ describe("CLI (import.meta.main)", () => {
       [
         "run",
         join(SCRIPTS_DIR, "improve_description.ts"),
-        "--eval-results", tmpEvalResults,
-        "--skill-path", tmpSkillDir,
-        "--model", "claude-sonnet-4-20250514",
+        "--eval-results",
+        tmpEvalResults,
+        "--skill-path",
+        tmpSkillDir,
+        "--model",
+        "claude-sonnet-4-20250514",
         "--verbose",
       ],
       { encoding: "utf-8", timeout: 3000 },

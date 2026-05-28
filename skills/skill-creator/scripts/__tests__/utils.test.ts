@@ -1,8 +1,7 @@
-import { describe, it, expect } from "bun:test";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
-import { join } from "node:path";
+import { describe, expect, it } from "bun:test";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { spawnSync } from "node:child_process";
+import { join } from "node:path";
 import { parseSkillMd } from "../utils";
 
 function makeFixture(files: Record<string, string>): string {
@@ -74,9 +73,7 @@ compatibility: "2.0"
     try {
       const result = parseSkillMd(dir);
       expect(result.name).toBe("block-skill");
-      expect(result.description).toBe(
-        "This is a block description with multiple lines that are indented.",
-      );
+      expect(result.description).toBe("This is a block description with multiple lines that are indented.");
     } finally {
       cleanup(dir);
     }
@@ -98,9 +95,7 @@ description: >
     try {
       const result = parseSkillMd(dir);
       expect(result.name).toBe("gt-skill");
-      expect(result.description).toBe(
-        "This is a folded block with multiple lines that should be joined.",
-      );
+      expect(result.description).toBe("This is a folded block with multiple lines that should be joined.");
     } finally {
       cleanup(dir);
     }
@@ -120,9 +115,7 @@ description: |-
     try {
       const result = parseSkillMd(dir);
       expect(result.name).toBe("bar-skill");
-      expect(result.description).toBe(
-        "Strip trailing newline version of literal block.",
-      );
+      expect(result.description).toBe("Strip trailing newline version of literal block.");
     } finally {
       cleanup(dir);
     }
@@ -142,9 +135,7 @@ description: >-
     try {
       const result = parseSkillMd(dir);
       expect(result.name).toBe("gtbar-skill");
-      expect(result.description).toBe(
-        "Strip trailing newline version of folded block.",
-      );
+      expect(result.description).toBe("Strip trailing newline version of folded block.");
     } finally {
       cleanup(dir);
     }
@@ -197,9 +188,7 @@ description: bad
 `,
     });
     try {
-      expect(() => parseSkillMd(dir)).toThrow(
-        "SKILL.md missing frontmatter (no opening ---)",
-      );
+      expect(() => parseSkillMd(dir)).toThrow("SKILL.md missing frontmatter (no opening ---)");
     } finally {
       cleanup(dir);
     }
@@ -214,9 +203,7 @@ description: bad
 `,
     });
     try {
-      expect(() => parseSkillMd(dir)).toThrow(
-        "SKILL.md missing frontmatter (no closing ---)",
-      );
+      expect(() => parseSkillMd(dir)).toThrow("SKILL.md missing frontmatter (no closing ---)");
     } finally {
       cleanup(dir);
     }
@@ -255,9 +242,7 @@ description: |
     try {
       const result = parseSkillMd(dir);
       expect(result.name).toBe("tab-skill");
-      expect(result.description).toBe(
-        "Tab indented line 1 Tab indented line 2",
-      );
+      expect(result.description).toBe("Tab indented line 1 Tab indented line 2");
     } finally {
       cleanup(dir);
     }

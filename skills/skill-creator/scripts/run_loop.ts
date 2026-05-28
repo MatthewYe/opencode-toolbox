@@ -9,13 +9,13 @@
  *     bun run run_loop.ts --eval-set <path> --skill-path <path> --model <name> [options]
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { parseSkillMd } from "./utils";
-import { runEval, findProjectRoot, type EvalItem, type EvalOutput, type RunEvalOptions } from "./run_eval";
-import { improveDescription, detectCli, type EvalResults, type ImproveDescriptionOptions } from "./improve_description";
+import { join } from "node:path";
 import { generateHtml } from "./generate_report";
+import { detectCli, type ImproveDescriptionOptions, improveDescription } from "./improve_description";
+import { type EvalItem, type EvalOutput, findProjectRoot, type RunEvalOptions, runEval } from "./run_eval";
+import { parseSkillMd } from "./utils";
 
 // =============================================================================
 // Types
@@ -102,10 +102,10 @@ export function splitEvalSet(
   function random(): number {
     // Mulberry32 PRNG — fast, good distribution
     state |= 0;
-    state = state + 0x6d2b79f5 | 0;
-    let t = Math.imul(state ^ state >>> 15, 1 | state);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   }
 
   function shuffle<T>(arr: T[]): void {
@@ -174,9 +174,7 @@ export async function runLoop(options: RunLoopOptions): Promise<RunLoopOutput> {
   if (holdout > 0) {
     [trainSet, testSet] = splitEvalSet(evalSet, holdout);
     if (verbose) {
-      console.error(
-        `Split: ${trainSet.length} train, ${testSet.length} test (holdout=${holdout})`,
-      );
+      console.error(`Split: ${trainSet.length} train, ${testSet.length} test (holdout=${holdout})`);
     }
   } else {
     trainSet = evalSet;
@@ -211,12 +209,8 @@ export async function runLoop(options: RunLoopOptions): Promise<RunLoopOutput> {
     const elapsedSec = (Date.now() - iterStart) / 1000;
 
     const trainQueriesSet = new Set(trainSet.map((q) => q.query));
-    const trainResultList = evalOutput.results.filter((r) =>
-      trainQueriesSet.has(r.query),
-    );
-    const testResultList = evalOutput.results.filter(
-      (r) => !trainQueriesSet.has(r.query),
-    );
+    const trainResultList = evalOutput.results.filter((r) => trainQueriesSet.has(r.query));
+    const testResultList = evalOutput.results.filter((r) => !trainQueriesSet.has(r.query));
 
     const trainPassed = trainResultList.filter((r) => r.pass).length;
     const trainTotal = trainResultList.length;
@@ -269,18 +263,11 @@ export async function runLoop(options: RunLoopOptions): Promise<RunLoopOutput> {
         test_size: testSet.length,
         history,
       } as RunLoopOutput;
-      writeFileSync(
-        liveReportPath,
-        generateHtml(partialOutput, { autoRefresh: true, skillName: name }),
-      );
+      writeFileSync(liveReportPath, generateHtml(partialOutput, { autoRefresh: true, skillName: name }));
     }
 
     if (verbose) {
-      function printEvalStats(
-        label: string,
-        results: QueryResult[],
-        elapsedSecs: number,
-      ): void {
+      function printEvalStats(label: string, results: QueryResult[], elapsedSecs: number): void {
         const pos = results.filter((r) => r.should_trigger);
         const neg = results.filter((r) => !r.should_trigger);
         const tp = pos.reduce((sum, r) => sum + (r.triggers || 0), 0);
@@ -367,14 +354,10 @@ export async function runLoop(options: RunLoopOptions): Promise<RunLoopOutput> {
   let bestScore: string;
 
   if (testSet.length > 0) {
-    best = history.reduce((a, b) =>
-      (b.test_passed ?? 0) > (a.test_passed ?? 0) ? b : a,
-    );
+    best = history.reduce((a, b) => ((b.test_passed ?? 0) > (a.test_passed ?? 0) ? b : a));
     bestScore = `${best.test_passed}/${best.test_total}`;
   } else {
-    best = history.reduce((a, b) =>
-      b.train_passed > a.train_passed ? b : a,
-    );
+    best = history.reduce((a, b) => (b.train_passed > a.train_passed ? b : a));
     bestScore = `${best.train_passed}/${best.train_total}`;
   }
 
@@ -423,9 +406,7 @@ if (import.meta.main) {
   const model = getArg("--model");
 
   if (!evalSetPath || !skillPath || !model) {
-    console.error(
-      "Usage: bun run run_loop.ts --eval-set <path> --skill-path <path> --model <name> [options]",
-    );
+    console.error("Usage: bun run run_loop.ts --eval-set <path> --skill-path <path> --model <name> [options]");
     console.error("");
     console.error("Options:");
     console.error("  --eval-set <path>         Path to eval set JSON file (required)");
@@ -490,10 +471,7 @@ if (import.meta.main) {
         .replace(/\.\d{3}/, "")
         .replace("T", "_");
       const safeName = skillPath.replace(/[/\\]/g, "_").replace(/^_+/, "");
-      liveReportPath = join(
-        tmpdir(),
-        `skill_description_report_${safeName}_${timestamp}.html`,
-      );
+      liveReportPath = join(tmpdir(), `skill_description_report_${safeName}_${timestamp}.html`);
     } else {
       liveReportPath = reportArg;
     }
@@ -539,51 +517,47 @@ if (import.meta.main) {
     verbose,
     liveReportPath,
     logDir,
-  }).then((output) => {
-    const snaked: Record<string, unknown> = {
-      exit_reason: output.exit_reason,
-      original_description: output.original_description,
-      best_description: output.best_description,
-      best_score: output.best_score,
-      best_train_score: output.best_train_score,
-      best_test_score: output.best_test_score,
-      final_description: output.final_description,
-      iterations_run: output.iterations_run,
-      holdout: output.holdout,
-      train_size: output.train_size,
-      test_size: output.test_size,
-      history: output.history,
-    };
+  })
+    .then((output) => {
+      const snaked: Record<string, unknown> = {
+        exit_reason: output.exit_reason,
+        original_description: output.original_description,
+        best_description: output.best_description,
+        best_score: output.best_score,
+        best_train_score: output.best_train_score,
+        best_test_score: output.best_test_score,
+        final_description: output.final_description,
+        iterations_run: output.iterations_run,
+        holdout: output.holdout,
+        train_size: output.train_size,
+        test_size: output.test_size,
+        history: output.history,
+      };
 
-    const jsonOutput = JSON.stringify(snaked, null, 2);
-    console.log(jsonOutput);
+      const jsonOutput = JSON.stringify(snaked, null, 2);
+      console.log(jsonOutput);
 
-    if (resultsDir) {
-      writeFileSync(join(resultsDir, "results.json"), jsonOutput);
-    }
+      if (resultsDir) {
+        writeFileSync(join(resultsDir, "results.json"), jsonOutput);
+      }
 
-    if (liveReportPath) {
-      writeFileSync(
-        liveReportPath,
-        generateHtml(output, { autoRefresh: false, skillName: name }),
-      );
-      console.error(`\nReport: ${liveReportPath}`);
-    }
+      if (liveReportPath) {
+        writeFileSync(liveReportPath, generateHtml(output, { autoRefresh: false, skillName: name }));
+        console.error(`\nReport: ${liveReportPath}`);
+      }
 
-    if (resultsDir && liveReportPath) {
-      writeFileSync(
-        join(resultsDir, "report.html"),
-        generateHtml(output, { autoRefresh: false, skillName: name }),
-      );
-    }
+      if (resultsDir && liveReportPath) {
+        writeFileSync(join(resultsDir, "report.html"), generateHtml(output, { autoRefresh: false, skillName: name }));
+      }
 
-    if (resultsDir) {
-      console.error(`Results saved to: ${resultsDir}`);
-    }
+      if (resultsDir) {
+        console.error(`Results saved to: ${resultsDir}`);
+      }
 
-    process.exit(0);
-  }).catch((e) => {
-    console.error(`Error: ${e}`);
-    process.exit(1);
-  });
+      process.exit(0);
+    })
+    .catch((e) => {
+      console.error(`Error: ${e}`);
+      process.exit(1);
+    });
 }

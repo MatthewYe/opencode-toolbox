@@ -14,8 +14,8 @@
     "errors_encountered": 1
   },
   "expectations": [
-    {"text": "Handles basic case", "passed": true, "evidence": "matches expected output"},
-    {"text": "Handles edge case", "passed": false, "evidence": "incorrect parsing"}
+    { "text": "Handles basic case", "passed": true, "evidence": "matches expected output" },
+    { "text": "Handles edge case", "passed": false, "evidence": "incorrect parsing" }
   ],
   "user_notes_summary": {
     "uncertainties": [],

@@ -1,5 +1,5 @@
-import { existsSync, statSync, readdirSync, mkdirSync } from "node:fs";
-import { resolve, relative, join, basename, dirname } from "node:path";
+import { existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import AdmZip from "adm-zip";
 import { validateSkill } from "./quick_validate";
 
@@ -32,7 +32,7 @@ export function shouldExclude(relPath: string): boolean {
   if (EXCLUDE_FILES.has(name)) return true;
 
   // EXCLUDE_GLOBS: *.pyc
-  for (const glob of EXCLUDE_GLOBS) {
+  for (const _glob of EXCLUDE_GLOBS) {
     if (name.endsWith(".pyc")) return true;
   }
 
@@ -46,10 +46,7 @@ export function shouldExclude(relPath: string): boolean {
  * @param outputDir - Optional output directory (defaults to cwd).
  * @returns Path to the created .skill file, or null on error.
  */
-export function packageSkill(
-  skillPath: string,
-  outputDir?: string,
-): string | null {
+export function packageSkill(skillPath: string, outputDir?: string): string | null {
   const resolvedSkillPath = resolve(skillPath);
 
   if (!existsSync(resolvedSkillPath)) {
@@ -108,7 +105,7 @@ export function packageSkill(
         continue;
       }
 
-      zip.addLocalFile(fullPath, dirname(arcname) + "/", basename(arcname));
+      zip.addLocalFile(fullPath, `${dirname(arcname)}/`, basename(arcname));
       console.log(`  Added: ${arcname}`);
     }
 
@@ -126,9 +123,7 @@ export function packageSkill(
 if (import.meta.main) {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.error(
-      "Usage: bun run package_skill.ts <path/to/skill-folder> [output-directory]",
-    );
+    console.error("Usage: bun run package_skill.ts <path/to/skill-folder> [output-directory]");
     console.error("\nExample:");
     console.error("  bun run package_skill.ts skills/public/my-skill");
     console.error("  bun run package_skill.ts skills/public/my-skill ./dist");

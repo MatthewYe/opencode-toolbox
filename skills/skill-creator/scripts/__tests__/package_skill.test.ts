@@ -1,16 +1,16 @@
-import { describe, it, expect } from "bun:test";
-import { mkdtempSync, writeFileSync, mkdirSync, rmSync, existsSync, readFileSync } from "node:fs";
-import { join, basename } from "node:path";
-import { tmpdir } from "node:os";
+import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { basename, join } from "node:path";
 import AdmZip from "adm-zip";
-import { shouldExclude, packageSkill } from "../package_skill";
+import { packageSkill, shouldExclude } from "../package_skill";
 
 // =============================================================================
 // Slice 2: packageSkill (integration with temp dirs)
 // =============================================================================
 
-const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
+const _FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 const SCRIPTS_DIR = join(import.meta.dir, "..");
 
 function makeSkillDir(files: Record<string, string>): string {
@@ -194,11 +194,7 @@ describe("shouldExclude", () => {
 
 describe("CLI (import.meta.main)", () => {
   it("prints usage and exits 1 when no args provided", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "package_skill.ts")],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "package_skill.ts")], { encoding: "utf-8" });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Usage:");
   });
@@ -215,11 +211,9 @@ description: CLI test skill
     });
     const outDir = mkdtempSync(join(tmpdir(), "pkg-cli-out-"));
     try {
-      const result = spawnSync(
-        "bun",
-        ["run", join(SCRIPTS_DIR, "package_skill.ts"), skillDir, outDir],
-        { encoding: "utf-8" },
-      );
+      const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "package_skill.ts"), skillDir, outDir], {
+        encoding: "utf-8",
+      });
       expect(result.status).toBe(0);
       expect(result.stdout).toContain("Successfully packaged skill to:");
 
@@ -243,11 +237,9 @@ description: Broken
     });
     const outDir = mkdtempSync(join(tmpdir(), "pkg-cli-out-"));
     try {
-      const result = spawnSync(
-        "bun",
-        ["run", join(SCRIPTS_DIR, "package_skill.ts"), skillDir, outDir],
-        { encoding: "utf-8" },
-      );
+      const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "package_skill.ts"), skillDir, outDir], {
+        encoding: "utf-8",
+      });
       expect(result.status).toBe(1);
       expect(result.stderr).toContain("Validation failed");
     } finally {
@@ -257,11 +249,9 @@ description: Broken
   });
 
   it("exits 1 for non-existent path", () => {
-    const result = spawnSync(
-      "bun",
-      ["run", join(SCRIPTS_DIR, "package_skill.ts"), "/nonexistent/path"],
-      { encoding: "utf-8" },
-    );
+    const result = spawnSync("bun", ["run", join(SCRIPTS_DIR, "package_skill.ts"), "/nonexistent/path"], {
+      encoding: "utf-8",
+    });
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("Error: Skill folder not found");
   });

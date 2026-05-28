@@ -1,15 +1,8 @@
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import matter from "gray-matter";
 
-const ALLOWED_PROPERTIES = new Set([
-  "name",
-  "description",
-  "license",
-  "allowed-tools",
-  "metadata",
-  "compatibility",
-]);
+const ALLOWED_PROPERTIES = new Set(["name", "description", "license", "allowed-tools", "metadata", "compatibility"]);
 
 function typeName(value: unknown): string {
   if (value === null || value === undefined) return "NoneType";
@@ -53,11 +46,7 @@ export function validateSkill(skillPath: string): {
     frontmatter = parsed.data as Record<string, unknown>;
 
     // Check if it's a dict (object) — not a list, null, or primitive
-    if (
-      frontmatter === null ||
-      Array.isArray(frontmatter) ||
-      typeof frontmatter !== "object"
-    ) {
+    if (frontmatter === null || Array.isArray(frontmatter) || typeof frontmatter !== "object") {
       return {
         valid: false,
         message: "Frontmatter must be a YAML dictionary",
@@ -69,9 +58,7 @@ export function validateSkill(skillPath: string): {
   }
 
   // Check for unexpected properties
-  const unexpectedKeys = Object.keys(frontmatter).filter(
-    (k) => !ALLOWED_PROPERTIES.has(k),
-  );
+  const unexpectedKeys = Object.keys(frontmatter).filter((k) => !ALLOWED_PROPERTIES.has(k));
   if (unexpectedKeys.length > 0) {
     const sortedUnexpected = [...unexpectedKeys].sort().join(", ");
     const sortedAllowed = [...ALLOWED_PROPERTIES].sort().join(", ");
