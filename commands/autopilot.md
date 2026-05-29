@@ -3,7 +3,7 @@ description: Put issue resolution on autopilot — scans local .scratch/ files A
 arguments: [{ name: "target", description: "Optional: a .scratch/<feature>/issues/<NN-slug> directory path, or a GitHub issue number (#N or N). If omitted, scan all sources.", required: false }]
 ---
 
-Execute the autopilot orchestrator workflow below. Implementer and reviewer agents load `tdd`, `diagnose`, and `zoom-out` skills autonomously — orchestrator does not need to load them.
+Execute the autopilot orchestrator workflow below. **Orchestrator MUST include explicit `skill` tool loading instructions in implementer and reviewer dispatch prompts** — see "执行 implementer" and reviewer dispatch sections for the exact preamble format.
 
 ## Issue 来源识别
 
@@ -155,8 +155,24 @@ dispatch implementer 前，扫描 `suggestions.json`，匹配 pending suggestion
 
 ### 执行 implementer
 
-用 `task` 工具 dispatch `implementer` agent（subagent_type: `implementer`），传递：
+用 `task` 工具 dispatch `implementer` agent（subagent_type: `implementer`）。**prompt 必须以 skill 加载指令开头（强制，不可省略）**：
 
+```
+**在开始任何操作之前，必须使用 `skill` 工具加载以下技能：**
+1. `skill(name: "tdd")` — TDD 方法论（红绿重构循环、测试质量标准、mock 纪律）
+2. `skill(name: "diagnose")` — 系统性诊断流程（遇到意外错误时使用）
+3. `skill(name: "zoom-out")` — 不熟悉代码区域时上探抽象层次
+
+**这是强制步骤，不可跳过。** 未加载技能前不得执行任何其他操作。
+
+---
+
+<以下为任务描述>
+
+<根据 retry_count 和模式动态生成>
+```
+
+任务描述部分传递：
 - **共同的**：`source`, `id`, `contract`（合约内容），以及：
   - 首次（retry_count = 0）：`ROUND: 0`
   - retry（retry_count >= 1）：`ROUND: <retry_count>` + `PREV_REVIEW: <上一轮 REVIEWER_REPORT 全文>`
@@ -189,7 +205,20 @@ dispatch reviewer 前，自动收集当前 issue 所属 PRD 下所有已 resolve
 
 ### 处理 implementer 结果
 
-- **STATUS: DONE** → dispatch `reviewer` agent，传递 `source`, `id`, `contract`, `CHANGED_FILES`, `SIBLING_CONTEXT` + 上一轮 `REVIEWER_REPORT`（如有）
+- **STATUS: DONE** → dispatch `reviewer` agent（subagent_type: `reviewer`）。**prompt 必须以 skill 加载指令开头（强制，不可省略）**：
+
+```
+**在开始任何操作之前，必须使用 `skill` 工具加载以下技能：**
+1. `skill(name: "tdd")` — 测试质量标准和 mock 纪律（用于 TDD 审查维度）
+
+**这是强制步骤，不可跳过。** 未加载技能前不得执行任何其他操作。
+
+---
+
+<以下为任务描述>
+```
+
+任务描述部分传递 `source`, `id`, `contract`, `CHANGED_FILES`, `SIBLING_CONTEXT` + 上一轮 `REVIEWER_REPORT`（如有）
   - **GitHub 模式**：额外传 `IS_GITHUB: true`
 - **STATUS: BLOCKED 或 NEEDS_CONTEXT** → 更新 Status 为 `needs-info`，追加注释说明原因，**停止**
 
