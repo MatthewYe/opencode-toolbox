@@ -23,7 +23,7 @@ Built on top of [mattpocock/skills](https://github.com/mattpocock/skills) and ex
 | Engineering skills | `tdd`, `diagnose`, `triage`, `to-issues`, `to-prd`, `zoom-out`, `grill-with-docs`, `improve-codebase-architecture`, `prototype`, `setup-matt-pocock-skills` |
 | Productivity skills | `caveman` (ultra-compact mode), `grill-me` (design interrogation), `handoff` (agent context transfer), `write-a-skill` |
 | Custom skills | `skill-creator` (eval-driven skill development), `opencode-plugin-scaffold` (create/fix OpenCode plugins) |
-| Agent pair | `implementer` (TDD execution) + `reviewer` (3-axis review: Behavior, TDD discipline, Code quality) |
+| Agent cluster | `implementer` (TDD execution) + `reviewer` (4-axis review: Behavior, TDD discipline, Code quality, Plan fidelity) + `argus` (Kimi-powered multimodal vision analysis) |
 
 ## Prerequisites
 
@@ -92,7 +92,7 @@ Once issues are `Status: ready-for-agent`:
 flowchart LR
     I[".scratch/ issue<br/>(Status: ready-for-agent)"] --> IM["implementer<br/>reads AGENT-BRIEF<br/>TDD red-green-refactor"]
     IM --> SR["self-review"]
-    SR --> RV["reviewer<br/>3-axis review (read-only)"]
+    SR --> RV["reviewer<br/>4-axis review (read-only)"]
     RV -->|"VERDICT: MERGE"| DONE(["code ready"])
     RV -->|"VERDICT: RETRY"| IM
     RV -->|"VERDICT: BLOCKED"| HUMAN(["needs-info → human"])
@@ -103,6 +103,36 @@ flowchart LR
 Max **3 rounds** (initial + 2 retries). If RETRY on round 3, the issue goes to `needs-info` for human triage.
 
 For full details on issue structure, TDD discipline rules, and agent behavior, see [AGENTS.md](AGENTS.md).
+
+## Agents
+
+The toolbox registers three agents by default:
+
+| Agent | Model | Description |
+|-------|-------|-------------|
+| `implementer` | Inherits global default | TDD-driven execution, auto diagnose on failure |
+| `reviewer` | Inherits global default | Read-only 4-axis review |
+| `argus` | `kimi-for-coding/kimi-for-coding` | Read-only, multimodal image/UI/chart analysis (Chinese output) |
+
+### argus model configuration
+
+`argus` defaults to the Kimi multimodal model. If your provider config uses a different Kimi model name, override in `opencode.json`/`opencode.jsonc`:
+
+```jsonc
+{
+  "agent": {
+    "argus": {
+      "model": "my-kimi-provider/my-kimi-model"
+    }
+  }
+}
+```
+
+To disable the vision agent entirely:
+
+```jsonc
+{ "agent": { "argus": { "disabled": true } } }
+```
 
 ## Status & Roadmap
 

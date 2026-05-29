@@ -22,7 +22,7 @@ The plugin reads `.md` files at runtime via `gray-matter` (YAML frontmatter), th
 
 | Source dir | Injected as |
 |------------|-------------|
-| `agents/*.md` | `config.agent` (implementer, reviewer) |
+| `agents/*.md` | `config.agent` (implementer, reviewer, argus) |
 | `commands/*.md` | `config.command` (autopilot) |
 | `skills/` | `config.skills.paths` |
 | `upstream/skills/engineering/` | `config.skills.paths` |
