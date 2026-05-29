@@ -12,7 +12,7 @@ bun run build         # compile src/index.ts → dist/
 bun run dev           # watch mode
 ```
 
-Entry point (for npm consumers): `dist/index.js`. `dist/` is gitignored — must build before publish.
+Entry point (for npm consumers): `dist/index.js`. `dist/` is gitignored — must build before publish. **For local install** (`git clone` → path in `opencode.jsonc`), run `bun run build` after `bun install` to generate `dist/index.js`.
 
 No test, lint, or typecheck commands exist. `tsconfig.json` is for editor support only.
 
