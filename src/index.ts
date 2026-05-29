@@ -112,6 +112,10 @@ export const OpenCodeToolbox: Plugin = async ({ directory: _directory }) => {
         }
       }
 
+      if (cfg.lsp === undefined) {
+        cfg.lsp = true as unknown as typeof cfg.lsp;
+      }
+
       cfg.agent = { ...(cfg.agent ?? {}), ...agentConfigs };
       cfg.command = { ...upstreamCommandConfigs, ...commandConfigs, ...(cfg.command ?? {}) };
     },
