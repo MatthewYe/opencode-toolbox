@@ -60,6 +60,27 @@ function buildCommandConfigs(raw: Record<string, FrontmatterEntry>): Record<stri
   return configs;
 }
 
+function readSkillDirCommands(dirPath: string): Record<string, FrontmatterEntry> {
+  const result: Record<string, FrontmatterEntry> = {};
+  if (!fs.existsSync(dirPath)) return result;
+
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const skillFile = path.join(dirPath, entry.name, "SKILL.md");
+    if (!fs.existsSync(skillFile)) continue;
+
+    const raw = fs.readFileSync(skillFile, "utf8");
+    const { data: frontmatter } = matter(raw);
+    const name = frontmatter.name || entry.name;
+    const description = frontmatter.description || "";
+    const template = `Load the '${name}' skill and follow its instructions.`;
+
+    result[name] = { description, prompt: template };
+  }
+  return result;
+}
+
 // biome-ignore lint/suspicious/noExplicitAny: plugin config is dynamically extended by consumers
 type DynamicConfig = Config & Record<string, any>;
 
@@ -72,6 +93,12 @@ export const OpenCodeToolbox: Plugin = async ({ directory: _directory }) => {
 
   const agentConfigs = buildAgentConfigs(agentsRaw);
   const commandConfigs = buildCommandConfigs(commandsRaw);
+
+  const upstreamCommandsRaw = {
+    ...readSkillDirCommands(upstreamEngDir),
+    ...readSkillDirCommands(upstreamProdDir),
+  };
+  const upstreamCommandConfigs = buildCommandConfigs(upstreamCommandsRaw);
 
   return {
     config: async (config) => {
@@ -86,7 +113,7 @@ export const OpenCodeToolbox: Plugin = async ({ directory: _directory }) => {
       }
 
       cfg.agent = { ...(cfg.agent ?? {}), ...agentConfigs };
-      cfg.command = { ...(cfg.command ?? {}), ...commandConfigs };
+      cfg.command = { ...upstreamCommandConfigs, ...commandConfigs, ...(cfg.command ?? {}) };
     },
   };
 };
