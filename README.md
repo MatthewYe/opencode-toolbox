@@ -23,7 +23,7 @@ OpenCode 很强大，但开箱即用只是单轮助手 —— 你提问、它回
 | 工程技能 | `tdd`、`diagnose`、`triage`、`to-issues`、`to-prd`、`zoom-out`、`grill-with-docs`、`improve-codebase-architecture`、`prototype`、`setup-matt-pocock-skills` |
 | 生产力技能 | `caveman`（极简模式）、`grill-me`（方案拷问）、`handoff`（上下文交接）、`write-a-skill` |
 | 自研技能 | `skill-creator`（评测驱动的技能开发）、`opencode-plugin-scaffold`（创建/修复 OpenCode 插件） |
-| Agent 对 | `implementer`（TDD 实施）+ `reviewer`（三维审查：行为对齐、TDD 纪律、代码质量） |
+| Agent 集群 | `implementer`（TDD 实施）+ `reviewer`（四维审查：行为对齐、TDD 纪律、代码质量、计划忠实度） + `argus`（Kimi 多模态图像分析） |
 
 ## 前置条件
 
@@ -92,7 +92,7 @@ cd opencode-toolbox && bun install && bun run build
 flowchart LR
     I[".scratch/ issue<br/>(Status: ready-for-agent)"] --> IM["implementer<br/>读取 AGENT-BRIEF<br/>TDD red-green-refactor"]
     IM --> SR["self-review / 自审查"]
-    SR --> RV["reviewer<br/>三维审查（只读）"]
+    SR --> RV["reviewer<br/>四维审查（只读）"]
     RV -->|"VERDICT: MERGE"| DONE(["代码就绪"])
     RV -->|"VERDICT: RETRY"| IM
     RV -->|"VERDICT: BLOCKED"| HUMAN(["needs-info → 人工介入"])
@@ -103,6 +103,36 @@ flowchart LR
 最多 **3 轮**（初始 + 2 次重试）。若第 3 轮仍 RETRY，issue 进入 `needs-info` 等待人工处理。
 
 关于 issue 结构、TDD 纪律规则和 agent 行为的完整细节，详见 [AGENTS.md](AGENTS.md)。
+
+## Agent
+
+工具箱默认注册三个 agent：
+
+| Agent | 模型 | 说明 |
+|-------|------|------|
+| `implementer` | 继承全局默认 | TDD 驱动实施，遇错自动 diagnose 自愈 |
+| `reviewer` | 继承全局默认 | 只读四维审查 |
+| `argus` | `kimi-for-coding/kimi-for-coding` | 只读，多模态图像/UI/图表分析（中文输出） |
+
+### argus 模型配置
+
+`argus` 默认使用 Kimi 多模态模型。如果你的 provider 配置中 Kimi 名称不同，在 `opencode.json`/`opencode.jsonc` 中覆盖：
+
+```jsonc
+{
+  "agent": {
+    "argus": {
+      "model": "my-kimi-provider/my-kimi-model"
+    }
+  }
+}
+```
+
+无需图像分析 agent 时，也可以直接禁用：
+
+```jsonc
+{ "agent": { "argus": { "disabled": true } } }
+```
 
 ## 状态与路线图
 
