@@ -33,7 +33,7 @@ The read-only agent that performs 4-axis review (Behavior alignment, TDD discipl
 _Avoid_: Code reviewer, auditor
 
 **Meta-review**:
-The orchestrator's final pass (Phase 2) that performs cross-module consistency checks and produces a `FINAL_ACCEPTANCE_REPORT`. This report surfaces all pending and rejected Suggestions with rationale, serving as input for human sign-off.
+The orchestrator's final pass (Phase 2) that dispatches a reviewer subagent in parallel with its own inspection of the codebase. Both produce independent review reports, which are merged using a union strategy (stricter finding wins in conflicts). The merged report drives a fix loop capped at 2 rounds, followed by a `FINAL_ACCEPTANCE_REPORT` that surfaces all pending and rejected Suggestions with rationale for human sign-off.
 _Avoid_: Post-mortem, final review
 
 **Retry loop**:
