@@ -1,6 +1,6 @@
-import { describe, test, expect, beforeAll } from "bun:test";
-import { OpenCodeToolbox } from "./index";
+import { beforeAll, describe, expect, test } from "bun:test";
 import type { Config } from "@opencode-ai/plugin";
+import { OpenCodeToolbox } from "./index";
 
 /**
  * RED phase: Test that principles are prepended to agent prompts based on agent mapping.
@@ -15,7 +15,7 @@ describe("Karpathy Principles Injection", () => {
 
   test("implementer gets all four principles with Think Before Coding", async () => {
     const cfg = { agent: {}, skills: { paths: [] } } as unknown as Config & Record<string, unknown>;
-    await result!.config!(cfg as Config);
+    await result?.config?.(cfg as Config);
 
     const prompt = (cfg as Record<string, unknown>).agent as Record<string, { prompt: string }>;
     const implPrompt = prompt.implementer?.prompt ?? "";
@@ -28,7 +28,7 @@ describe("Karpathy Principles Injection", () => {
 
   test("general gets all four principles with Think Before Coding", async () => {
     const cfg = { agent: { general: {} }, skills: { paths: [] } } as unknown as Config & Record<string, unknown>;
-    await result!.config!(cfg as Config);
+    await result?.config?.(cfg as Config);
 
     const prompt = (cfg as Record<string, unknown>).agent as Record<string, { prompt: string }>;
     const genPrompt = prompt.general?.prompt ?? "";
@@ -41,7 +41,7 @@ describe("Karpathy Principles Injection", () => {
 
   test("reviewer gets principles 1(variant),2,4 — Think Before Judging, not Think Before Coding", async () => {
     const cfg = { agent: { reviewer: {} }, skills: { paths: [] } } as unknown as Config & Record<string, unknown>;
-    await result!.config!(cfg as Config);
+    await result?.config?.(cfg as Config);
 
     const prompt = (cfg as Record<string, unknown>).agent as Record<string, { prompt: string }>;
     const revPrompt = prompt.reviewer?.prompt ?? "";
@@ -59,7 +59,7 @@ describe("Karpathy Principles Injection", () => {
 
   test("argus gets principles 1(variant),2,4 — Think Before Analyzing", async () => {
     const cfg = { agent: { argus: {} }, skills: { paths: [] } } as unknown as Config & Record<string, unknown>;
-    await result!.config!(cfg as Config);
+    await result?.config?.(cfg as Config);
 
     const prompt = (cfg as Record<string, unknown>).agent as Record<string, { prompt: string }>;
     const argusPrompt = prompt.argus?.prompt ?? "";
@@ -78,7 +78,7 @@ describe("Karpathy Principles Injection", () => {
 
   test("explore gets no principles", async () => {
     const cfg = { agent: { explore: {} }, skills: { paths: [] } } as unknown as Config & Record<string, unknown>;
-    await result!.config!(cfg as Config);
+    await result?.config?.(cfg as Config);
 
     const prompt = (cfg as Record<string, unknown>).agent as Record<string, { prompt: string }>;
     const explorePrompt = prompt.explore?.prompt ?? "";
@@ -94,7 +94,7 @@ describe("Karpathy Principles Injection", () => {
 
   test("principles are prepended (appear at start of agent prompt)", async () => {
     const cfg = { agent: { implementer: {} }, skills: { paths: [] } } as unknown as Config & Record<string, unknown>;
-    await result!.config!(cfg as Config);
+    await result?.config?.(cfg as Config);
 
     const prompt = (cfg as Record<string, unknown>).agent as Record<string, { prompt: string }>;
     const implPrompt = prompt.implementer?.prompt ?? "";
