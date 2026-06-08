@@ -12,6 +12,7 @@
     "upstream/skills/",
     "agents/",
     "commands/",
+    "principles/",
     "docs/agents/"
   ],
   "scripts": {
