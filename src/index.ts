@@ -74,10 +74,7 @@ const HEADER_TEMPLATES: Record<string, string> = {
   v4: "## Principle 4: Goal-Driven Execution",
 };
 
-function buildPrinciplesBlock(
-  sections: PrincipleSections,
-  agentName: string,
-): string {
+function buildPrinciplesBlock(sections: PrincipleSections, agentName: string): string {
   const keys = AGENT_PRINCIPLE_MAP[agentName];
   if (!keys || keys.length === 0) return "";
 
