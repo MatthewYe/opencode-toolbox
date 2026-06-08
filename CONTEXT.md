@@ -40,6 +40,38 @@ _Avoid_: Post-mortem, final review
 The implementer → reviewer cycle within a single issue, repeated up to 3 times. Each retry passes only the most recent `REVIEWER_REPORT` to the implementer (as `PREV_REVIEW`). Suggestions are extracted from every round regardless of retry count.
 _Avoid_: Iteration loop, fix cycle
 
+**audit-autopilot**:
+A post-hoc audit skill (`/audit-autopilot`) that analyzes an autopilot session trace to evaluate execution fidelity. Takes an orchestrator session ID as input, auto-discovers child subagent sessions via task call metadata, then scores execution quality across three layers (Fidelity, Errors, Friction & Drift) using a fixed question set.
+_Avoid_: Autopilot debugger, session inspector
+
+**Session trace**:
+The JSON output of `opencode export <sessionID>` — a full record of an OpenCode conversation containing all messages, tool calls (with input/output), reasoning blocks, and cost/token metadata. Used as the sole input data source for audit-autopilot.
+_Avoid_: Session log, conversation dump
+
+**Fidelity score**:
+A 3-point rubric (PASS / WARN / FAIL) applied to each analysis question. FAIL and WARN entries must include evidence anchors. Aggregated into an overall fidelity percentage: PASS count ÷ total questions.
+_Avoid_: Audit score, quality grade
+
+**Fidelity layer**:
+One of three analysis levels in audit-autopilot: Layer 1 — Fidelity (intent translation, AC coverage, report credibility); Layer 2 — Errors (unfixed criticals, verdict inconsistency, suggestion chain breaks); Layer 3 — Friction & Drift (retry churn, scope creep, TDD discipline violations).
+_Avoid_: Analysis tier, audit dimension
+
+**Evidence anchor**:
+A message ID + excerpt from a session trace that supports a FAIL or WARN finding. Every finding must cite at least one anchor, enabling full traceability from the scorecard back to the raw conversation.
+_Avoid_: Citation, reference
+
+**Spot-check**:
+In Phase 1 of audit-autopilot, sampling subagent session traces even when the orchestrator-level analysis reveals no issues. Ensures the audit does not miss problems hidden below the orchestrator's view (e.g., implementer claiming TDD but skipping tests).
+_Avoid_: Random check, sanity sample
+
+**Deep-dive**:
+Phase 2 of audit-autopilot — mandatory when Phase 1 finds any WARN or FAIL. Loads the full subagent session trace for the flagged round/issue and performs targeted analysis against the specific analysis question that triggered the flag. Uses session-level evidence (tool call sequences, actual test runs) to confirm or refute the Phase 1 signal.
+_Avoid_: Full review, second pass
+
+**Analysis question**:
+One of 9 fixed questions in the audit-autopilot checklist, each mapped to a fidelity layer and scoring rubric. Questions are answered by examining session traces (orchestrator ± subagent), with each answer requiring a score, rationale, and evidence anchor when non-PASS.
+_Avoid_: Audit item, evaluation criteria
+
 ### Example dialogue
 
 > **Dev**: "/autopilot .scratch/auth/issues/01-login"
