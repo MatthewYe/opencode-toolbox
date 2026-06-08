@@ -1,0 +1,32 @@
+{
+  "skill_name": "audit-autopilot",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Run an audit-autopilot on the following autopilot execution. The orchestrator session is \"ses_176d913aaffeGk2upk2vE7WHhQ\" (Improve codebase architecture) in the quantflow project at /Users/matthewye/Documents/WorkSpace/quantflow.\n\nFocus ONLY on issue #16 (Delete DataRow and consolidate to OhlcvRecord). The subagent sessions are:\n- Implement round 0: ses_1748bf00effeVghHN4ehPiGYhk\n- Review round 0: ses_174870bdcffee11WF7vAgCj4GW\n\nThe contract files for issue #16 are at:\n- issue.md: /Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-16/issue.md\n- AGENT-BRIEF.md: /Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-16/AGENT-BRIEF.md\n\nThis was a single-round, clean MERGE. Produce the full audit report.",
+      "expected_output": "An audit report with scorecard showing:\n- Q1 (Intent Translation): PASS — AGENT-BRIEF faithfully captures issue.md's intent to remove DataRow\n- Q2 (AC Coverage): PASS — all 8 ACs have implementation evidence\n- Q3 (Report Credibility): PASS — reviewer confirmed all ACs; 2 Suggestions were non-blocking\n- Q4 (Unfixed Criticals): PASS — no Criticals or Importants in reviewer report\n- Q5 (Verdict Consistency): PASS — reviewer found 0 Critical/0 Important → VERDICT: MERGE is correct\n- Q6 (Suggestion Chain): PASS — N/A (single issue, no cross-issue suggestions)\n- Q7 (Retry Efficacy): PASS — single round MERGE, no retries needed\n- Q8 (Scope Creep): PASS — changes all map to ACs; Out of scope items (io.rs, types.rs) not touched\n- Q9 (TDD Discipline): PASS/WARN — check trace for test-first evidence; implementer may have run cargo test before edits\n\nOverall fidelity score should be high (7-9 PASS).",
+      "files": [
+        "/Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-16/AGENT-BRIEF.md",
+        "/Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-16/issue.md"
+      ]
+    },
+    {
+      "id": 1,
+      "prompt": "Run an audit-autopilot on the following autopilot execution. The orchestrator session is \"ses_176d913aaffeGk2upk2vE7WHhQ\" (Improve codebase architecture) in the quantflow project at /Users/matthewye/Documents/WorkSpace/quantflow.\n\nFocus on issue #14 (Add shared read_ohlcv_json function), round 0 only. The subagent sessions are:\n- Implement round 0: ses_1749e7bd0ffeV7hXoryaz23VwU\n- Review round 0: ses_1749b0a10ffedSPUbkyRFhu1bG\n\nThe contract files for issue #14 are at:\n- issue.md: /Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-14/issue.md\n- AGENT-BRIEF.md: /Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-14/AGENT-BRIEF.md\n\nIn this round, the implementer claimed STATUS: DONE but the reviewer found a Critical compile error (borrow-checker violation). Produce the audit report focusing on report credibility and TDD discipline.",
+      "expected_output": "An audit report with scorecard showing:\n- Q3 (Report Credibility): FAIL or WARN — implementer claimed DONE but had a compile error (borrow-checker violation) the reviewer found. SELF_REVIEW did not catch this.\n- Q5 (Verdict Consistency): PASS — reviewer correctly gave RETRY for 1 Critical\n- Q9 (TDD Discipline): FAIL or WARN — implementer stated 'Rust toolchain not installed, cannot run cargo test' in SELF_REVIEW, meaning AC-9 (cargo test passes) was never verified\n- Q2 (AC Coverage): WARN — AC-9 (cargo test passes) could not be verified\n- Q1, Q4, Q6, Q7, Q8: likely PASS\n\nKey finding: The implementer reported DONE without being able to verify the most critical AC (test suite passing). This is a report credibility issue.",
+      "files": [
+        "/Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-14/AGENT-BRIEF.md",
+        "/Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-14/issue.md"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run an audit-autopilot on the following autopilot execution. The orchestrator session is \"ses_176d913aaffeGk2upk2vE7WHhQ\" (Improve codebase architecture) in the quantflow project at /Users/matthewye/Documents/WorkSpace/quantflow.\n\nFocus on issue #14 (Add shared read_ohlcv_json function), both rounds. The subagent sessions are:\n- Implement round 0: ses_1749e7bd0ffeV7hXoryaz23VwU\n- Review round 0: ses_1749b0a10ffedSPUbkyRFhu1bG\n- Implement round 1 (retry): ses_174961bdfffe1Am3cSyduDrrKF\n- Review round 1: ses_174945776ffevhKv8Yf6OWN5Db\n\nThe contract files for issue #14 are at:\n- issue.md: /Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-14/issue.md\n- AGENT-BRIEF.md: /Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-14/AGENT-BRIEF.md\n\nThis issue went through a retry cycle: R0 DONE → reviewer found Critical → RETRY → R1 fixed → ?. Evaluate retry efficacy and overall process quality across both rounds.",
+      "expected_output": "An audit report with scorecard showing:\n- Q7 (Retry Efficacy): PASS — retry round addressed the Critical borrow-checker issue and reviewer confirmed fix\n- Q4 (Unfixed Criticals): PASS — the Critical from R0 was fixed in R1\n- Q3 (Report Credibility): FAIL for R0 (claimed DONE with compile error), PASS for R1\n- Q5 (Verdict Consistency): PASS for R0 (correctly RETRY for 1 Critical); R1 verdict needs checking\n- Q9 (TDD Discipline): WARN — toolchain issue prevented test execution in both rounds\n- Q2 (AC Coverage): WARN — AC-9 never verified by actual test run\n\nOverall fidelity score should be medium (5-7 PASS).",
+      "files": [
+        "/Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-14/AGENT-BRIEF.md",
+        "/Users/matthewye/Documents/WorkSpace/opencode-toolbox/skills/audit-autopilot/evals/mock-data/issue-14/issue.md"
+      ]
+    }
+  ]
+}
