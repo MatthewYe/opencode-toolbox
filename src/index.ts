@@ -22,6 +22,73 @@ interface CommandConfig {
   [key: string]: unknown;
 }
 
+// ── Karpathy Principles ───────────────────────────────────────────
+
+interface PrincipleSections {
+  v1Coding: string;
+  v1Judging: string;
+  v1Analyzing: string;
+  v2: string;
+  v3: string;
+  v4: string;
+}
+
+function parsePrinciples(content: string): PrincipleSections {
+  const sections: Record<string, string> = {};
+  // Split by "## Principle" headers; skip the intro before the first header
+  const parts = content.split(/(?=^## Principle)/m);
+  for (const part of parts) {
+    const headerMatch = part.match(/^## Principle\s+(\d).*?\n/);
+    if (!headerMatch) continue;
+    const num = headerMatch[1];
+    const body = part.slice(headerMatch[0].length).trim();
+
+    if (num === "1") {
+      if (part.includes("Reviewer Variant")) {
+        sections.v1Judging = body;
+      } else if (part.includes("Argus Variant")) {
+        sections.v1Analyzing = body;
+      } else {
+        sections.v1Coding = body;
+      }
+    } else {
+      sections[`v${num}`] = body;
+    }
+  }
+  return sections as unknown as PrincipleSections;
+}
+
+const AGENT_PRINCIPLE_MAP: Record<string, (keyof PrincipleSections)[]> = {
+  implementer: ["v1Coding", "v2", "v3", "v4"],
+  general: ["v1Coding", "v2", "v3", "v4"],
+  reviewer: ["v1Judging", "v2", "v4"],
+  argus: ["v1Analyzing", "v2", "v4"],
+};
+
+const HEADER_TEMPLATES: Record<string, string> = {
+  v1Coding: "## Principle 1: Think Before Coding",
+  v1Judging: "## Principle 1: Think Before Judging",
+  v1Analyzing: "## Principle 1: Think Before Analyzing",
+  v2: "## Principle 2: Simplicity First",
+  v3: "## Principle 3: Surgical Changes",
+  v4: "## Principle 4: Goal-Driven Execution",
+};
+
+function buildPrinciplesBlock(
+  sections: PrincipleSections,
+  agentName: string,
+): string {
+  const keys = AGENT_PRINCIPLE_MAP[agentName];
+  if (!keys || keys.length === 0) return "";
+
+  const blocks = keys.map((key) => {
+    const header = HEADER_TEMPLATES[key];
+    const body = sections[key] ?? "";
+    return `${header}\n\n${body}`;
+  });
+  return `# Andrej Karpathy's Coding Principles\n\n${blocks.join("\n\n")}\n\n---\n\n`;
+}
+
 function readMarkdownConfigs(dirPath: string): Record<string, FrontmatterEntry> {
   const result: Record<string, FrontmatterEntry> = {};
   if (!fs.existsSync(dirPath)) return result;
@@ -100,6 +167,15 @@ export const OpenCodeToolbox: Plugin = async ({ directory: _directory }) => {
   };
   const upstreamCommandConfigs = buildCommandConfigs(upstreamCommandsRaw);
 
+  // ── Karpathy principles ───────────────────────────────────────
+  const principlesPath = path.resolve(__dirname, "principles", "karpathy.md");
+  const primaryPrinciplesPath = path.resolve(__dirname, "principles", "karpathy-primary.md");
+  let principleSections: PrincipleSections | null = null;
+  if (fs.existsSync(principlesPath)) {
+    const rawPrinciples = fs.readFileSync(principlesPath, "utf8");
+    principleSections = parsePrinciples(rawPrinciples);
+  }
+
   return {
     config: async (config) => {
       const cfg = config as DynamicConfig;
@@ -118,6 +194,23 @@ export const OpenCodeToolbox: Plugin = async ({ directory: _directory }) => {
 
       cfg.agent = { ...(cfg.agent ?? {}), ...agentConfigs };
       cfg.command = { ...upstreamCommandConfigs, ...commandConfigs, ...(cfg.command ?? {}) };
+
+      // Prepend Karpathy principles to agent prompts based on agent mapping
+      if (principleSections) {
+        for (const [agentName, agentCfg] of Object.entries(cfg.agent)) {
+          if (!agentCfg) continue;
+          const block = buildPrinciplesBlock(principleSections, agentName);
+          if (block) {
+            agentCfg.prompt = block + (agentCfg.prompt ?? "");
+          }
+        }
+      }
+
+      // Primary agent: inject full Karpathy principles via instructions
+      cfg.instructions = cfg.instructions || [];
+      if (!cfg.instructions.includes(primaryPrinciplesPath)) {
+        cfg.instructions.push(primaryPrinciplesPath);
+      }
     },
   };
 };
