@@ -25,12 +25,24 @@ The orchestrator's mechanism for matching pending Suggestions to the next issue 
 _Avoid_: Suggestion forwarding, feedback relay
 
 **Implementer**:
-The agent that reads an AGENT-BRIEF and implements acceptance criteria following TDD discipline. In retry rounds, it fixes only Critical items from the previous `REVIEWER_REPORT` and addresses any cross-issue Suggestions matched by the orchestrator.
+The agent that reads an AGENT-BRIEF and implements acceptance criteria following TDD discipline. In retry rounds, it fixes only Critical items from the previous `REVIEWER_REPORT` and addresses any cross-issue Suggestions matched by the orchestrator. Reports STATUS as one of: DONE (all AC verified), UNVERIFIED (code written but toolchain unavailable, cannot run tests), BLOCKED (diagnose exhausted), or NEEDS_CONTEXT (ambiguous scope).
 _Avoid_: Builder, coder
 
 **Reviewer**:
-The read-only agent that performs 4-axis review (Behavior alignment, TDD discipline, Code quality, Plan fidelity) and outputs a `REVIEWER_REPORT` with VERDICT (MERGE | RETRY | BLOCKED). Annotates Suggestions with keywords for downstream matching.
+The read-only agent that performs 4-axis review (Behavior alignment, TDD discipline, Code quality, Plan fidelity) and outputs a `REVIEWER_REPORT` with VERDICT: MERGE (0 Critical, 0 Important), RETRY (1+ Critical/Important), BLOCKED (directional error), or VERIFY_NEEDED (implementer reported UNVERIFIED — structure correct but needs toolchain execution before merge). Annotates Suggestions with keywords for downstream matching.
 _Avoid_: Code reviewer, auditor
+
+**UNVERIFIED**:
+An implementer STATUS indicating the implementation is structurally complete (all ACs addressed in code) but test execution was not possible because the required toolchain is unavailable. The code has NOT been verified to compile or pass tests. Triggers a reviewer pass (structure-only) with a modified verdict path.
+_Avoid_: Partial, unchecked
+
+**VERIFY_NEEDED**:
+A reviewer VERDICT issued when the implementer reported UNVERIFIED. Indicates the reviewer's structure-only analysis passes but toolchain verification (compile + test run) is required before the issue can be marked resolved. The orchestrator should attempt toolchain verification or escalate to human.
+_Avoid_: Verify later, pending-toolchain
+
+**REFACTORING mode**:
+A contract flag set by the orchestrator when the issue is a structural consolidation (replacing duplicated code, extracting shared utilities, removing dead types) rather than a feature addition. When set, the implementer relaxes TDD expectations: existing tests validate behavior preservation, new failing tests are NOT required for the refactoring itself. The implementer must still run existing tests before and after changes where possible.
+_Avoid_: Consolidation mode, no-new-tests mode
 
 **Meta-review**:
 The orchestrator's final pass (Phase 2) that dispatches a reviewer subagent in parallel with its own inspection of the codebase. Both produce independent review reports, which are merged using a union strategy (stricter finding wins in conflicts). The merged report drives a fix loop capped at 2 rounds, followed by a `FINAL_ACCEPTANCE_REPORT` that surfaces all pending and rejected Suggestions with rationale for human sign-off.
