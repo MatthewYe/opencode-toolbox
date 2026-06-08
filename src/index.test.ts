@@ -10,7 +10,7 @@ describe("Karpathy Principles Injection", () => {
   let result: { config?: (cfg: Config) => Promise<void> } | undefined;
 
   beforeAll(async () => {
-    result = await OpenCodeToolbox({ directory: "." });
+    result = await OpenCodeToolbox({ directory: "." } as any);
   });
 
   test("implementer gets all four principles with Think Before Coding", async () => {
