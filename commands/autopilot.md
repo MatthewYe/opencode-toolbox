@@ -155,6 +155,23 @@ dispatch implementer 前，扫描 `suggestions.json`，匹配 pending suggestion
 
 ### 执行 implementer
 
+#### 前置：Pre-flight 工具链检测
+
+dispatch implementer 前，检测项目的工具链是否可用：
+
+1. 根据项目类型推断测试命令（Rust → `cargo test`，Node → `npm test`，Python → `pytest` 或 `uv run pytest`）
+2. 运行 `which <tool>` 检测工具链是否存在（如 `which cargo`、`which npm`）
+3. 不可用时尝试常见安装路径（`~/.cargo/bin/cargo`、`~/.rustup/toolchains/*/bin/cargo`）
+4. 设置 `TOOLCHAIN: available` 或 `TOOLCHAIN: unavailable`，传入 implementer 的 dispatch prompt
+
+#### 前置：REFACTORING 模式检测
+
+分析合约内容，检测当前 issue 是否为纯重构任务（非新功能开发）：
+
+1. 扫描合约关键词：`replace`、`consolidate`、`extract`、`delete`、`Remove`、`Replace`、`inline`、`shared function`、`duplicated` → 命中 2+ 且不含 `Add`、`new feature`、`Implement`（作为新增功能时）→ 标记 `REFACTORING: true`
+2. 对照 AC：如果所有 AC 描述的是"替换"或"删除"而非"新增功能" → `REFACTORING: true`
+3. 设置 `REFACTORING: true|false`，传入 implementer 的 dispatch prompt
+
 用 `task` 工具 dispatch `implementer` agent（subagent_type: `implementer`）。**prompt 必须以 skill 加载指令开头（强制，不可省略）**：
 
 ```
@@ -173,7 +190,7 @@ dispatch implementer 前，扫描 `suggestions.json`，匹配 pending suggestion
 ```
 
 任务描述部分传递：
-- **共同的**：`source`, `id`, `contract`（合约内容），以及：
+- **共同的**：`source`, `id`, `contract`（合约内容）, `TOOLCHAIN: <available|unavailable>`, `REFACTORING: <true|false>`，以及：
   - 首次（retry_count = 0）：`ROUND: 0`
   - retry（retry_count >= 1）：`ROUND: <retry_count>` + `PREV_REVIEW: <上一轮 REVIEWER_REPORT 全文>`
   - 如有匹配到的 CROSS_ISSUE_SUGGESTIONS，一并传入
@@ -188,9 +205,11 @@ dispatch implementer 前，扫描 `suggestions.json`，匹配 pending suggestion
 
 ### 首次实现：检查 SELF_REVIEW
 
-retry_count = 0 且 STATUS: DONE → 检查报告中有无 `SELF_REVIEW:` 段。"无问题" 或 "发现问题 → 已修复" → 通过。
+retry_count = 0 时，检查报告中有无 `SELF_REVIEW:` 段：
 
-缺失 SELF_REVIEW 但 STATUS: DONE → 标记为 `needs-info`，停止。
+- STATUS: DONE → "无问题" 或 "发现问题 → 已修复" → 通过
+- STATUS: UNVERIFIED → 必须包含每条 AC 的验证方式标注（测试运行 / 代码结构分析）。**标注缺失但 STATUS: UNVERIFIED → 通过**（UNVERIFIED 本身已声明验证不全）
+- STATUS: DONE 或 UNVERIFIED 但缺失 SELF_REVIEW 段 → 标记为 `needs-info`，停止
 
 Retry 轮次（retry_count >= 1）不检查 SELF_REVIEW。
 
@@ -220,6 +239,12 @@ dispatch reviewer 前，自动收集当前 issue 所属 PRD 下所有已 resolve
 
 任务描述部分传递 `source`, `id`, `contract`, `CHANGED_FILES`, `SIBLING_CONTEXT` + 上一轮 `REVIEWER_REPORT`（如有）
   - **GitHub 模式**：额外传 `IS_GITHUB: true`
+
+- **STATUS: UNVERIFIED** → dispatch `reviewer` agent（同上 prompt 格式）。任务描述中额外传递 `UNVERIFIED: true` + implementer 的完整 `SELF_REVIEW` 段（含逐 AC 验证方式标注）。reviewer 的审查侧重：
+  - 结构正确性（代码逻辑是否符合 AC）
+  - 是否所有 AC 都有对应的代码实现
+  - VERDICT 可选 `VERIFY_NEEDED`（结构通过但需工具链验证）或 `RETRY`（结构本身有问题）
+
 - **STATUS: BLOCKED 或 NEEDS_CONTEXT** → 更新 Status 为 `needs-info`，追加注释说明原因，**停止**
 
 #### 解析 SUGGESTION_RESOLUTIONS
@@ -280,6 +305,11 @@ STATUS: DONE 时，从 `IMPLEMENTER_REPORT` 中解析 `SUGGESTION_RESOLUTIONS:` 
 VERDICT 分支：
 
 - **MERGE** → 更新 Status 为 `resolved`，追加 reviewer 结论。进入"Update Suggestion 状态"步骤，完成后**返回扫描模式处理下一个 issue**
+- **VERIFY_NEEDED** → 审查通过（结构正确）但 implementer 工具链不可用，无法实际验证。处理流程：
+  1. 尝试运行项目的测试命令（如 `cargo test`、`npm test`、`pytest`）。如工具链在 orchestrator 环境可用 → 运行验证
+  2. 验证通过 → 更新 Status 为 `resolved`，追加 "Orchestrator verified: all tests pass"
+  3. 验证失败或工具链仍不可用 → 更新 Status 为 `needs-info`，追加 reviewer 结论 + "Toolchain unavailable — requires manual verification"
+  4. 所有情况下保留 reviewer 报告和 Suggestion 提取
 - **RETRY** → `retry_count += 1`，清空 `pending_resolutions = []`（上一轮 resolutions 在 retry 后失效，新轮次 implementer 需重新声明）
   - `retry_count < 3`：返回"执行 implementer"（传递 PREV_REVIEW）
   - `retry_count >= 3`：更新 Status 为 `needs-info`，追加 reviewer 问题清单 + 说明已达最大重试次数，**返回扫描模式处理下一个 issue**

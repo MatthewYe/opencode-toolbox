@@ -30,6 +30,7 @@ permission:
 - **本地 `.scratch/` issue**：传入 `issue_dir` 路径。合约在 `<issue_dir>/AGENT-BRIEF.md`。
 - **GitHub Issue**：传入 `IS_GITHUB: true` + 合约文本（orchestrator 从 issue body 提取的 AC）。无 AGENT-BRIEF.md 文件。
 - **如果是多模块任务组（如批量迁移）**：orchestrator 还会传入已完成的 sibling 模块的 CHANGED_FILES 列表，用于跨模块一致性检查。
+- **UNVERIFIED 模式**：传入 `UNVERIFIED: true` — implementer 工具链不可用，代码未经验证。审查侧重结构正确性，VERDICT 可选 `VERIFY_NEEDED`。
 
 ## 审查流程
 
@@ -104,8 +105,18 @@ REVIEWER_REPORT:
   KEYWORDS: keyword1, keyword2, keyword3
   FILES: path/to/file1.ts, path/to/file2.ts
 
-VERDICT: MERGE | RETRY | BLOCKED
+VERDICT: MERGE | RETRY | BLOCKED | VERIFY_NEEDED
 ```
+
+### UNVERIFIED 模式
+
+如果 orchestrator 传入了 `UNVERIFIED: true`（implementer 报告 STATUS: UNVERIFIED），审查焦点调整为**结构正确性审查**：
+
+- 所有四维审查照常执行，但 TDD 维度（维度二）放宽：仅检查"是否存在无测试的生产代码"——如果代码有对应测试文件但未运行则为 PASS（工具链不可用导致）
+- VERDICT 判定调整：
+  - 0 Critical 且 0 Important → `VERIFY_NEEDED`（结构正确，需工具链验证后才能 MERGE）
+  - 有 Critical 或有 Important → `RETRY`（结构本身有问题，不因 UNVERIFIED 而放宽）
+  - 方向性错误 → `BLOCKED`
 
 每条 Suggestion 可附带以下可选标注（各占一行，缩进 2 空格，逗号分隔）：
 
@@ -124,9 +135,10 @@ VERDICT: MERGE | RETRY | BLOCKED
 
 #### Verdict 判定
 
-- MERGE — 无 Critical 且无 Important 问题
+- MERGE — 无 Critical 且无 Important 问题（且非 UNVERIFIED 模式）
 - RETRY — 有 Critical 或有 Important 问题
 - BLOCKED — 方向性错误，需人工介入
+- VERIFY_NEEDED — UNVERIFIED 模式下 0 Critical 且 0 Important（结构正确，需工具链验证后才能 MERGE）
 
 严格按表判定，不得降级。
 

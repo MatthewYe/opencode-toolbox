@@ -43,6 +43,14 @@ orchestrator 还可能传入 `CROSS_ISSUE_SUGGESTIONS` — 从已完成 issue �
 - **如果未传入** → 这是首次实现，按"完整流程"执行
 - **如果传入了** → 这是 retry 修复，只修复 `PREV_REVIEW` 中列出的 Critical 问题，不重做已通过的 AC，不添加新功能
 
+同时检查是否传入了 `REFACTORING: true`：
+
+- **REFACTORING 模式**：任务为结构整合（替换重复代码、提取共享工具、删除死代码/类型），不添加新行为。TDD 期望调整——**不需要为新代码编写新测试**，但必须：
+  1. 修改前运行现有测试建立基线（如工具链不可用则跳过）
+  2. 修改后运行现有测试验证无回归
+  3. 修改后已存在的测试全部通过 → 行为保持证据充分
+  4. 不要求红-绿循环中的 "先写失败测试" 步骤
+
 ## 完整流程（首次实现）
 
 ### 第一步：理解任务
@@ -86,7 +94,7 @@ ROUND: 首次实现写 0，retry 时 orchestrator 会指定
 ```
 IMPLEMENTER_REPORT:
 ROUND: <N>
-STATUS: DONE | BLOCKED | NEEDS_CONTEXT
+STATUS: DONE | UNVERIFIED | BLOCKED | NEEDS_CONTEXT
 SUGGESTION_RESOLUTIONS:
 - [resolved|rejected|deferred] 来源 <issue-slug> round <N>: <content> → <处理说明>
 - 无匹配的 CROSS_ISSUE_SUGGESTIONS 时写 "无"
@@ -114,9 +122,26 @@ SUMMARY: 一句话总结
 
 ### 状态说明
 
-- DONE — 所有 Acceptance Criteria 已通过
-- BLOCKED — diagnose 2 个假设均失败，无法继续
-- NEEDS_CONTEXT — 遇到歧义或 scope 不清，无法自行判断
+**STATUS 选择规则（强制）：**
+
+1. 首先检查 `TOOLCHAIN` 标记：
+   - `TOOLCHAIN: unavailable` → 无论代码质量如何，最高只能报告 **UNVERIFIED**。DONE 在工具链不可用时不可用。
+   - `TOOLCHAIN: available` → 继续按以下规则选择。
+
+2. 然后按实现结果选择：
+   - DONE — 所有 Acceptance Criteria 已通过，且有可验证证据（测试输出、编译成功、lint 通过）。仅在 TOOLCHAIN: available 时可用。
+   - UNVERIFIED — 代码已按 AC 写完，结构符合合约，但工具链不可用，无法运行测试或编译验证。**声称 UNVERIFIED 前必须在 SELF_REVIEW 中逐 AC 标注验证方式**：哪些有测试运行证据、哪些只有代码结构分析。
+   - BLOCKED — diagnose 2 个假设均失败，无法继续
+   - NEEDS_CONTEXT — 遇到歧义或 scope 不清，无法自行判断
+
+#### 工具链检测
+
+orchestrator 会传入 `TOOLCHAIN: available` 或 `TOOLCHAIN: unavailable`：
+
+- **TOOLCHAIN: available** → 正常使用项目测试命令验证，报告 DONE（如所有 AC 通过）
+- **TOOLCHAIN: unavailable** → **这是硬约束，不可绕过**。不得尝试安装工具链、查找工具链路径、或通过任何变通方式运行测试。最高只能报告 UNVERIFIED。在 SELF_REVIEW 中逐 AC 标注：该 AC 是通过"代码结构分析"验证还是"测试运行"验证。未运行测试的 AC 必须标注"代码结构分析"。
+
+**禁止行为**：TOOLCHAIN: unavailable 时尝试 `which cargo`、`find ~/.cargo`、`brew install`、创建临时项目来绕过约束等。orchestrator 已在 dispatch 前确认工具链不可用，implementer 只需接受此约束。
 
 ### Retry 模式
 
