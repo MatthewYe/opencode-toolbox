@@ -76,17 +76,6 @@ function copyDir(src: string, dest: string) {
   }
 }
 
-function shouldSkipUpstream(skillMdPath: string, skillName: string): boolean {
-  if (!fs.existsSync(skillMdPath)) return true;
-  try {
-    const raw = fs.readFileSync(skillMdPath, "utf8");
-    if (/disable-model-invocation:\s*true/.test(raw)) {
-      console.log(`  Skipped upstream (disable-model-invocation): ${skillName}`);
-      return true;
-    }
-  } catch { return true; }
-  return false;
-}
 
 function copyUpstreamSkills() {
   const upstreamDir = path.join(ROOT, "upstream", "skills");
@@ -107,7 +96,6 @@ function copyUpstreamSkills() {
       if (!sk.isDirectory()) continue;
       const srcDir = path.join(upstreamDir, cat.name, sk.name);
       const skillMd = path.join(srcDir, "SKILL.md");
-      if (shouldSkipUpstream(skillMd, sk.name)) continue;
       const destDir = path.join(ROOT, "skills", sk.name);
       try { fs.rmSync(destDir, { recursive: true, force: true }); } catch {}
       copyDir(srcDir, destDir);
