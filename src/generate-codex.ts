@@ -188,7 +188,29 @@ function main() {
     }
   }
 
-  // 3. Symlink upstream skills into skills/
+  // 3. Generate Codex agent .toml files from agents/*.md
+  const agentsDir = path.join(ROOT, "agents");
+  if (fs.existsSync(agentsDir)) {
+    const { readMarkdownConfigs } = require("./shared.js");
+    const agentEntries = readMarkdownConfigs(agentsDir);
+    const tomlAgentsDir = path.join(ROOT, "templates", "agents");
+    fs.mkdirSync(tomlAgentsDir, { recursive: true });
+
+    for (const [agentName, entry] of Object.entries(agentEntries)) {
+      const description = entry.description || "";
+      const instructions = entry.prompt || "";
+      const toml = `name = "${agentName}"
+description = "${description.replace(/"/g, '\\"')}"
+developer_instructions = """
+${instructions}
+"""
+`;
+      fs.writeFileSync(path.join(tomlAgentsDir, `${agentName}.toml`), toml, "utf8");
+      console.log(`  Generated agent .toml: templates/agents/${agentName}.toml`);
+    }
+  }
+
+  // 4. Symlink upstream skills into skills/
   console.log("");
   linkUpstreamSkills();
 
