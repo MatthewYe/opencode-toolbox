@@ -1,0 +1,35 @@
+{
+  "name": "autopilot-toolkit",
+  "version": "1.0.0",
+  "description": "Autopilot development toolkit — skills, agents, and commands for autonomous development workflows",
+  "author": {
+    "name": "Matthew Ye",
+    "url": "https://github.com/MatthewYe"
+  },
+  "homepage": "https://github.com/MatthewYe/autopilot-toolkit",
+  "repository": "https://github.com/MatthewYe/autopilot-toolkit",
+  "license": "MIT",
+  "keywords": [
+    "autopilot",
+    "agent",
+    "tdd",
+    "code-review",
+    "development-workflow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Autopilot Toolkit",
+    "shortDescription": "Autonomous development workflow with TDD agents",
+    "longDescription": "Skills, agents, and commands for autonomous development workflows. Includes implementer, reviewer, and autopilot orchestrator agents following TDD discipline with Karpathy coding principles.",
+    "developerName": "Matthew Ye",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/MatthewYe/autopilot-toolkit",
+    "privacyPolicyURL": "https://github.com/MatthewYe/autopilot-toolkit",
+    "termsOfServiceURL": "https://github.com/MatthewYe/autopilot-toolkit",
+    "brandColor": "#6366F1"
+  }
+}

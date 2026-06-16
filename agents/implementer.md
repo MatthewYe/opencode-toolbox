@@ -1,4 +1,5 @@
 ---
+name: implementer
 description: Autopilot任务实施者。读取AGENT-BRIEF，遵循TDD纪律逐条实现，遇错自动diagnose自愈。
 mode: subagent
 hidden: false

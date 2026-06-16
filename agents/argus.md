@@ -1,4 +1,5 @@
 ---
+name: argus
 description: 百眼巨人 — 图片/多模态分析专用 subagent。使用 Kimi 的多模态能力处理看图任务。
 mode: subagent
 model: kimi-for-coding/kimi-for-coding

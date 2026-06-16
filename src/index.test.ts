@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import type { Config } from "@opencode-ai/plugin";
-import { OpenCodeToolbox } from "./index";
+import { AutopilotToolkit } from "./index";
 
 /**
  * RED phase: Test that principles are prepended to agent prompts based on agent mapping.
@@ -10,7 +10,7 @@ describe("Karpathy Principles Injection", () => {
   let result: { config?: (cfg: Config) => Promise<void> } | undefined;
 
   beforeAll(async () => {
-    result = await OpenCodeToolbox({ directory: "." } as any);
+    result = await AutopilotToolkit({ directory: "." } as any);
   });
 
   test("implementer gets all four principles with Think Before Coding", async () => {
