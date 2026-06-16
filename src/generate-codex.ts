@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { readMarkdownConfigs, getPackageRoot } from "./shared.js";
-
 const ROOT = getPackageRoot();
 
 // ── Plugin manifest ─────────────────────────────────────────────
@@ -39,14 +38,6 @@ function generatePluginJson() {
 }
 
 // ── Command → Skill bridges ─────────────────────────────────────
-
-const SKILL_NAME_COLLISIONS: Record<string, string> = {
-  "audit-autopilot": "autopilot-audit",
-  "git-guardrails": "git-guardrails-cmd",
-  "skill-creator": "skill-creator-cmd",
-  teach: "teach-cmd",
-  autopilot: "autopilot",
-};
 
 function buildCommandBridges() {
   const commandsDir = path.join(ROOT, "commands");
@@ -147,7 +138,6 @@ function main() {
   fs.writeFileSync(path.join(codexDir, "plugin.json"), JSON.stringify(generatePluginJson(), null, 2) + "\n", "utf8");
   console.log("  Generated .codex-plugin/plugin.json\n");
 
-  buildCommandBridges();
   console.log("");
   copyUpstreamSkills();
   buildAgentTomls();
