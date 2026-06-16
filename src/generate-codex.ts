@@ -28,6 +28,7 @@ interface PluginManifest {
     privacyPolicyURL: string;
     termsOfServiceURL: string;
     brandColor: string;
+    defaultPrompt: string[];
   };
 }
 
@@ -58,6 +59,11 @@ function generatePluginJson(): PluginManifest {
       privacyPolicyURL: "https://github.com/MatthewYe/autopilot-toolkit",
       termsOfServiceURL: "https://github.com/MatthewYe/autopilot-toolkit",
       brandColor: "#6366F1",
+      defaultPrompt: [
+        "Run the autopilot on my issue",
+        "Review this code with TDD discipline",
+        "Set up autopilot toolkit for this project",
+      ],
     },
   };
 }
@@ -92,6 +98,68 @@ ${entry.prompt}
   console.log(`  Generated skill bridge: skills/${skillName}/SKILL.md`);
 }
 
+// ── Upstream skill symlinks ───────────────────────────────────────
+
+/** Symlink individual upstream skill directories into skills/ */
+function linkUpstreamSkills(): void {
+  const upstreamDir = path.join(ROOT, "upstream", "skills");
+  if (!fs.existsSync(upstreamDir)) {
+    console.log("  No upstream/skills/ directory found, skipping.");
+    return;
+  }
+
+  // Clean up old symlinks
+  for (const existing of fs.readdirSync(path.join(ROOT, "skills"))) {
+    const existingPath = path.join(ROOT, "skills", existing);
+    try {
+      if (fs.lstatSync(existingPath).isSymbolicLink() && existing.startsWith("_upstream-")) {
+        fs.unlinkSync(existingPath);
+      }
+    } catch { /* ignore */ }
+  }
+
+  // Scan upstream category directories
+  const categories = fs.readdirSync(upstreamDir, { withFileTypes: true });
+  for (const cat of categories) {
+    if (!cat.isDirectory()) continue;
+    if (cat.name === "deprecated") continue; // skip deprecated skills
+    const catPath = path.join(upstreamDir, cat.name);
+
+    // Scan individual skill directories within the category
+    const skills = fs.readdirSync(catPath, { withFileTypes: true });
+    for (const skill of skills) {
+      if (!skill.isDirectory()) continue;
+      const skillPath = path.join(catPath, skill.name);
+
+      // Only symlink if it has a SKILL.md
+      if (!fs.existsSync(path.join(skillPath, "SKILL.md"))) continue;
+
+      // Skip skills with disable-model-invocation: true (Codex validator rejects these)
+      try {
+        const raw = fs.readFileSync(path.join(skillPath, "SKILL.md"), "utf8");
+        if (/disable-model-invocation:\s*true/.test(raw)) {
+          console.log(`  Skipped upstream skill (disable-model-invocation): ${skill.name}`);
+          continue;
+        }
+      } catch { /* skip if can't read */ }
+
+      const linkName = `_upstream-${skill.name}`;
+      const linkPath = path.join(ROOT, "skills", linkName);
+      const targetPath = path.join("..", "upstream", "skills", cat.name, skill.name);
+
+      // Remove existing symlink or directory if present
+      try {
+        if (fs.lstatSync(linkPath).isSymbolicLink()) fs.unlinkSync(linkPath);
+      } catch { /* doesn't exist */ }
+
+      if (!fs.existsSync(linkPath)) {
+        fs.symlinkSync(targetPath, linkPath, "dir");
+        console.log(`  Symlinked upstream skill: skills/${linkName} -> upstream/skills/${cat.name}/${skill.name}`);
+      }
+    }
+  }
+}
+
 // ── Main ──────────────────────────────────────────────────────────
 
 function main() {
@@ -120,7 +188,11 @@ function main() {
     }
   }
 
-  // 3. Generate templates/AGENTS.md if it doesn't exist
+  // 3. Symlink upstream skills into skills/
+  console.log("");
+  linkUpstreamSkills();
+
+  // 4. Generate templates/AGENTS.md if it doesn't exist
   const templatesDir = path.join(ROOT, "templates");
   fs.mkdirSync(templatesDir, { recursive: true });
   const agentsMdPath = path.join(templatesDir, "AGENTS.md");
@@ -133,7 +205,7 @@ function main() {
     console.log("  Generated templates/AGENTS.md\n");
   }
 
-  console.log("Codex plugin artifacts generated successfully.");
+console.log("Codex plugin artifacts generated successfully.");
 }
 
 main();

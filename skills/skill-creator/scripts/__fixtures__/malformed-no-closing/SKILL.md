@@ -1,3 +1,0 @@
----
-name: bad
-description: bad

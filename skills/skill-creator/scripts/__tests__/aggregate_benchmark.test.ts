@@ -6,7 +6,7 @@ import { join } from "node:path";
 import type { Benchmark, BenchmarkRun } from "../aggregate_benchmark";
 import { aggregateResults, calculateStats, generateMarkdown } from "../aggregate_benchmark";
 
-const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
+const FIXTURES_DIR = join(import.meta.dir, "..", "..", "..", "..", "test-fixtures", "skill-creator");
 const SCRIPTS_DIR = join(import.meta.dir, "..");
 
 // =============================================================================

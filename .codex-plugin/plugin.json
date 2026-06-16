@@ -30,6 +30,11 @@
     "websiteURL": "https://github.com/MatthewYe/autopilot-toolkit",
     "privacyPolicyURL": "https://github.com/MatthewYe/autopilot-toolkit",
     "termsOfServiceURL": "https://github.com/MatthewYe/autopilot-toolkit",
-    "brandColor": "#6366F1"
+    "brandColor": "#6366F1",
+    "defaultPrompt": [
+      "Run the autopilot on my issue",
+      "Review this code with TDD discipline",
+      "Set up autopilot toolkit for this project"
+    ]
   }
 }

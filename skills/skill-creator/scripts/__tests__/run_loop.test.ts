@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const SCRIPTS_DIR = join(import.meta.dir, "..");
-const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
+const FIXTURES_DIR = join(import.meta.dir, "..", "..", "..", "..", "test-fixtures", "skill-creator");
 
 // =============================================================================
 // Slice 1: splitEvalSet — stratification and determinism
