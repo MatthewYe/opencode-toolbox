@@ -1,48 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
-import matter from "gray-matter";
 import { readMarkdownConfigs, getPackageRoot } from "./shared.js";
 
 const ROOT = getPackageRoot();
 
-// ── Plugin manifest ───────────────────────────────────────────────
+// ── Plugin manifest ─────────────────────────────────────────────
 
-interface PluginManifest {
-  name: string;
-  version: string;
-  description: string;
-  author: { name: string; url: string };
-  homepage: string;
-  repository: string;
-  license: string;
-  keywords: string[];
-  skills: string;
-  interface: {
-    displayName: string;
-    shortDescription: string;
-    longDescription: string;
-    developerName: string;
-    category: string;
-    capabilities: string[];
-    websiteURL: string;
-    privacyPolicyURL: string;
-    termsOfServiceURL: string;
-    brandColor: string;
-    defaultPrompt: string[];
-  };
-}
-
-function generatePluginJson(): PluginManifest {
+function generatePluginJson() {
   const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
-
   return {
     name: "autopilot-toolkit",
     version: pkg.version,
     description: "Autopilot development toolkit — skills, agents, and commands for autonomous development workflows",
-    author: {
-      name: "Matthew Ye",
-      url: "https://github.com/MatthewYe",
-    },
+    author: { name: "Matthew Ye", url: "https://github.com/MatthewYe" },
     homepage: "https://github.com/MatthewYe/autopilot-toolkit",
     repository: "https://github.com/MatthewYe/autopilot-toolkit",
     license: "MIT",
@@ -68,7 +38,7 @@ function generatePluginJson(): PluginManifest {
   };
 }
 
-// ── Command → Skill bridge ────────────────────────────────────────
+// ── Command → Skill bridges ─────────────────────────────────────
 
 const SKILL_NAME_COLLISIONS: Record<string, string> = {
   "audit-autopilot": "autopilot-audit",
@@ -78,156 +48,124 @@ const SKILL_NAME_COLLISIONS: Record<string, string> = {
   autopilot: "autopilot",
 };
 
-function generateCommandSkillBridge(cmdName: string, entry: { description?: string; prompt: string }): void {
-  const skillName = SKILL_NAME_COLLISIONS[cmdName] ?? cmdName;
-  const skillDir = path.join(ROOT, "skills", skillName);
-  fs.mkdirSync(skillDir, { recursive: true });
-
-  const description = entry.description || `Execute the ${cmdName} workflow`;
-
-  const skillContent = `---
-name: ${skillName}
-description: ${description}
----
-
-${entry.prompt}
-`;
-
-  const skillPath = path.join(skillDir, "SKILL.md");
-  fs.writeFileSync(skillPath, skillContent, "utf8");
-  console.log(`  Generated skill bridge: skills/${skillName}/SKILL.md`);
+function buildCommandBridges() {
+  const commandsDir = path.join(ROOT, "commands");
+  if (!fs.existsSync(commandsDir)) return;
+  const commands = readMarkdownConfigs(commandsDir);
+  console.log(`  Found ${Object.keys(commands).length} commands`);
+  for (const [cmdName, entry] of Object.entries(commands)) {
+    const skillName = SKILL_NAME_COLLISIONS[cmdName] ?? cmdName;
+    const skillDir = path.join(ROOT, "skills", skillName);
+    fs.mkdirSync(skillDir, { recursive: true });
+    const desc = entry.description || `Execute the ${cmdName} workflow`;
+    fs.writeFileSync(path.join(skillDir, "SKILL.md"),
+      `---\nname: ${skillName}\ndescription: ${desc}\n---\n\n${entry.prompt}\n`, "utf8");
+    console.log(`  Generated skill bridge: skills/${skillName}/SKILL.md`);
+  }
 }
 
-// ── Upstream skill symlinks ───────────────────────────────────────
+// ── Upstream skill copies ───────────────────────────────────────
 
-/** Symlink individual upstream skill directories into skills/ */
-function linkUpstreamSkills(): void {
+function copyDir(src: string, dest: string) {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const sp = path.join(src, entry.name);
+    const dp = path.join(dest, entry.name);
+    if (entry.isDirectory()) copyDir(sp, dp);
+    else fs.copyFileSync(sp, dp);
+  }
+}
+
+function shouldSkipUpstream(skillMdPath: string, skillName: string): boolean {
+  if (!fs.existsSync(skillMdPath)) return true;
+  try {
+    const raw = fs.readFileSync(skillMdPath, "utf8");
+    if (/disable-model-invocation:\s*true/.test(raw)) {
+      console.log(`  Skipped upstream (disable-model-invocation): ${skillName}`);
+      return true;
+    }
+  } catch { return true; }
+  return false;
+}
+
+function copyUpstreamSkills() {
   const upstreamDir = path.join(ROOT, "upstream", "skills");
   if (!fs.existsSync(upstreamDir)) {
-    console.log("  No upstream/skills/ directory found, skipping.");
+    console.log("  No upstream/skills/, skipping.");
     return;
   }
 
-  // Clean up old symlinks
-  for (const existing of fs.readdirSync(path.join(ROOT, "skills"))) {
-    const existingPath = path.join(ROOT, "skills", existing);
-    try {
-      if (fs.lstatSync(existingPath).isSymbolicLink() && existing.startsWith("_upstream-")) {
-        fs.unlinkSync(existingPath);
-      }
-    } catch { /* ignore */ }
+  // Clean old upstream symlinks
+  for (const name of fs.readdirSync(path.join(ROOT, "skills"))) {
+    const p = path.join(ROOT, "skills", name);
+    try { if (fs.lstatSync(p).isSymbolicLink()) fs.unlinkSync(p); } catch {}
   }
 
-  // Scan upstream category directories
-  const categories = fs.readdirSync(upstreamDir, { withFileTypes: true });
-  for (const cat of categories) {
-    if (!cat.isDirectory()) continue;
-    if (cat.name === "deprecated") continue; // skip deprecated skills
-    const catPath = path.join(upstreamDir, cat.name);
-
-    // Scan individual skill directories within the category
-    const skills = fs.readdirSync(catPath, { withFileTypes: true });
-    for (const skill of skills) {
-      if (!skill.isDirectory()) continue;
-      const skillPath = path.join(catPath, skill.name);
-
-      // Only symlink if it has a SKILL.md
-      if (!fs.existsSync(path.join(skillPath, "SKILL.md"))) continue;
-
-      // Skip skills with disable-model-invocation: true (Codex validator rejects these)
-      try {
-        const raw = fs.readFileSync(path.join(skillPath, "SKILL.md"), "utf8");
-        if (/disable-model-invocation:\s*true/.test(raw)) {
-          console.log(`  Skipped upstream skill (disable-model-invocation): ${skill.name}`);
-          continue;
-        }
-      } catch { /* skip if can't read */ }
-
-      const linkName = `_upstream-${skill.name}`;
-      const linkPath = path.join(ROOT, "skills", linkName);
-      const targetPath = path.join("..", "upstream", "skills", cat.name, skill.name);
-
-      // Remove existing symlink or directory if present
-      try {
-        if (fs.lstatSync(linkPath).isSymbolicLink()) fs.unlinkSync(linkPath);
-      } catch { /* doesn't exist */ }
-
-      if (!fs.existsSync(linkPath)) {
-        fs.symlinkSync(targetPath, linkPath, "dir");
-        console.log(`  Symlinked upstream skill: skills/${linkName} -> upstream/skills/${cat.name}/${skill.name}`);
-      }
+  for (const cat of fs.readdirSync(upstreamDir, { withFileTypes: true })) {
+    if (!cat.isDirectory() || cat.name === "deprecated") continue;
+    for (const sk of fs.readdirSync(path.join(upstreamDir, cat.name), { withFileTypes: true })) {
+      if (!sk.isDirectory()) continue;
+      const srcDir = path.join(upstreamDir, cat.name, sk.name);
+      const skillMd = path.join(srcDir, "SKILL.md");
+      if (shouldSkipUpstream(skillMd, sk.name)) continue;
+      const destDir = path.join(ROOT, "skills", sk.name);
+      try { fs.rmSync(destDir, { recursive: true, force: true }); } catch {}
+      copyDir(srcDir, destDir);
+      console.log(`  Copied upstream: skills/${sk.name}`);
     }
   }
 }
 
-// ── Main ──────────────────────────────────────────────────────────
+// ── Agent .toml generation ──────────────────────────────────────
+
+function escapeToml(s: string): string {
+  return s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+function buildAgentTomls() {
+  const agentsDir = path.join(ROOT, "agents");
+  if (!fs.existsSync(agentsDir)) return;
+  const agents = readMarkdownConfigs(agentsDir);
+  const tomlDir = path.join(ROOT, "templates", "agents");
+  fs.mkdirSync(tomlDir, { recursive: true });
+  for (const [name, entry] of Object.entries(agents)) {
+    const toml = `name = "${name}"\ndescription = "${escapeToml(entry.description || "")}"\ndeveloper_instructions = """\n${entry.prompt}\n"""\n`;
+    fs.writeFileSync(path.join(tomlDir, `${name}.toml`), toml, "utf8");
+    console.log(`  Generated agent .toml: templates/agents/${name}.toml`);
+  }
+}
+
+// ── Templates ───────────────────────────────────────────────────
+
+function buildTemplates() {
+  const tplDir = path.join(ROOT, "templates");
+  fs.mkdirSync(tplDir, { recursive: true });
+  const principlesPath = path.join(ROOT, "principles", "karpathy-primary.md");
+  if (fs.existsSync(principlesPath)) {
+    const principles = fs.readFileSync(principlesPath, "utf8");
+    fs.writeFileSync(path.join(tplDir, "AGENTS.md"),
+      `# Autopilot Toolkit — Karpathy Coding Principles\n\n${principles}\n`, "utf8");
+    console.log("  Generated templates/AGENTS.md");
+  }
+}
+
+// ── Main ────────────────────────────────────────────────────────
 
 function main() {
   console.log("Generating Codex plugin artifacts...\n");
 
-  // 1. Generate .codex-plugin/plugin.json
-  const codexPluginDir = path.join(ROOT, ".codex-plugin");
-  fs.mkdirSync(codexPluginDir, { recursive: true });
-
-  const manifest = generatePluginJson();
-  fs.writeFileSync(
-    path.join(codexPluginDir, "plugin.json"),
-    JSON.stringify(manifest, null, 2) + "\n",
-    "utf8",
-  );
+  const codexDir = path.join(ROOT, ".codex-plugin");
+  fs.mkdirSync(codexDir, { recursive: true });
+  fs.writeFileSync(path.join(codexDir, "plugin.json"), JSON.stringify(generatePluginJson(), null, 2) + "\n", "utf8");
   console.log("  Generated .codex-plugin/plugin.json\n");
 
-  // 2. Generate command → skill bridges
-  const commandsDir = path.join(ROOT, "commands");
-  if (fs.existsSync(commandsDir)) {
-    const commands = readMarkdownConfigs(commandsDir);
-    console.log(`  Found ${Object.keys(commands).length} commands\n`);
-
-    for (const [cmdName, entry] of Object.entries(commands)) {
-      generateCommandSkillBridge(cmdName, entry);
-    }
-  }
-
-  // 3. Generate Codex agent .toml files from agents/*.md
-  const agentsDir = path.join(ROOT, "agents");
-  if (fs.existsSync(agentsDir)) {
-    const { readMarkdownConfigs } = require("./shared.js");
-    const agentEntries = readMarkdownConfigs(agentsDir);
-    const tomlAgentsDir = path.join(ROOT, "templates", "agents");
-    fs.mkdirSync(tomlAgentsDir, { recursive: true });
-
-    for (const [agentName, entry] of Object.entries(agentEntries)) {
-      const description = entry.description || "";
-      const instructions = entry.prompt || "";
-      const toml = `name = "${agentName}"
-description = "${description.replace(/"/g, '\\"')}"
-developer_instructions = """
-${instructions}
-"""
-`;
-      fs.writeFileSync(path.join(tomlAgentsDir, `${agentName}.toml`), toml, "utf8");
-      console.log(`  Generated agent .toml: templates/agents/${agentName}.toml`);
-    }
-  }
-
-  // 4. Symlink upstream skills into skills/
+  buildCommandBridges();
   console.log("");
-  linkUpstreamSkills();
+  copyUpstreamSkills();
+  buildAgentTomls();
+  buildTemplates();
 
-  // 4. Generate templates/AGENTS.md if it doesn't exist
-  const templatesDir = path.join(ROOT, "templates");
-  fs.mkdirSync(templatesDir, { recursive: true });
-  const agentsMdPath = path.join(templatesDir, "AGENTS.md");
-
-  const principlesPath = path.join(ROOT, "principles", "karpathy-primary.md");
-  if (fs.existsSync(principlesPath)) {
-    const principles = fs.readFileSync(principlesPath, "utf8");
-    const agentsContent = `# Autopilot Toolkit — Karpathy Coding Principles\n\n${principles}\n`;
-    fs.writeFileSync(agentsMdPath, agentsContent, "utf8");
-    console.log("  Generated templates/AGENTS.md\n");
-  }
-
-console.log("Codex plugin artifacts generated successfully.");
+  console.log("\nCodex plugin artifacts generated successfully.");
 }
 
 main();
