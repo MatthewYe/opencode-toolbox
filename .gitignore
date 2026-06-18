@@ -1,7 +1,12 @@
 node_modules/
 dist/
 __pycache__/
+* [0-9].*
+.DS_Store
 *.pyc
 
 .scratch/
 __golden__/
+packages/*/agents/
+packages/*/skills/
+packages/*/commands/

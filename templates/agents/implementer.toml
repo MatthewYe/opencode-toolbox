@@ -5,10 +5,21 @@ developer_instructions = """
 
 ## 启动时（强制步骤，不可跳过）
 
+<!-- OP_ONLY -->
+**在开始任何任务操作之前，必须加载以下技能：**
+
+使用 OpenCode 的 `skill` 工具依次加载：
+- `skill(name: "tdd")` — 测试质量标准、mock 纪律、红绿重构循环
+- `skill(name: "diagnose")` — 遇到意外错误时的系统性调试流程
+- `skill(name: "zoom-out")` — 不熟悉代码区域时上探一层抽象
+<!-- /OP_ONLY -->
+
+<!-- CDX_ONLY -->
 **在开始任何任务操作之前，必须使用 `skill` 工具依次加载以下技能：**
 - `skill(name: "tdd")` — 测试质量标准、mock 纪律、红绿重构循环
 - `skill(name: "diagnose")` — 遇到意外错误时的系统性调试流程
 - `skill(name: "zoom-out")` — 不熟悉代码区域时上探一层抽象
+<!-- /CDX_ONLY -->
 
 **这是强制步骤。未完成 skill 加载前，不得执行任何文件读写、代码编写或测试运行。**
 
@@ -50,7 +61,12 @@ orchestrator 还可能传入 `CROSS_ISSUE_SUGGESTIONS` — 从已完成 issue �
 ### 第一步：理解任务
 
 1. **本地 issue**：读取 `<issue_dir>/issue.md` 了解问题背景，读取 `<issue_dir>/AGENT-BRIEF.md` 获取合约（Acceptance Criteria）
-2. **GitHub Issue**：orchestrator 已传入合约文本（包含 AC 和 What to build）。如传入 GitHub issue 号，可用 `gh issue view <N> --json body` 补读完整背景
+2. **GitHub Issue**：orchestrator 已传入合约文本（包含 AC 和 What to build）。如传入 GitHub issue 号，<!-- OP_ONLY -->
+可用 `gh issue view <N> --json body` 补读完整背景
+<!-- /OP_ONLY -->
+<!-- CDX_ONLY -->
+可用 `mcp__github__get_issue` 或 `gh issue view <N> --json body` 补读完整背景
+<!-- /CDX_ONLY -->
 3. 如果不熟悉相关代码区域，加载 `zoom-out` 技能上探一层抽象
 4. 阅读项目的 CONTEXT.md 和 docs/adr/ 了解领域词汇和已做决策
 

@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "mkdir -p skills && cp -r ../../skills/* skills/ 2>/dev/null; mkdir -p skills && cp -r ../../upstream/skills/* skills/ 2>/dev/null; bun run src/index.ts && bun build src/index.ts --outdir dist --target node && tsc --project tsconfig.build.json --emitDeclarationOnly --outDir dist",
+    "build": "rm -rf skills && mkdir -p skills && cp -r ../../skills/* skills/ 2>/dev/null; cp -r ../../upstream/skills/* skills/ 2>/dev/null; bun run src/index.ts && bun build src/index.ts --outdir dist --target node && tsc --project tsconfig.build.json --emitDeclarationOnly --outDir dist",
     "typecheck": "tsc --project tsconfig.build.json --noEmit"
   },
   "dependencies": {

@@ -21,7 +21,7 @@
     "docs/agents/"
   ],
   "scripts": {
-    "build": "bun run build:core && (bun run build:opencode & bun run build:codex & wait) && bun build src/index.ts --outdir dist --target node && bun run src/generate-codex.ts",
+    "build": "bun run build:core && bun run build:opencode && bun run build:codex && bun build src/index.ts --outdir dist --target node && bun run src/generate-codex.ts",
     "build:core": "bun run build:templates && cd packages/core && bun run build",
     "build:templates": "bun run scripts/build-autopilot.ts",
     "build:opencode": "cd packages/opencode && bun run build",

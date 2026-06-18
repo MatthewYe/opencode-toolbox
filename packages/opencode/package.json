@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "mkdir -p skills && cp -r ../../skills/* skills/ 2>/dev/null; mkdir -p skills && cp -r ../../upstream/skills/* skills/ 2>/dev/null; bun build src/index.ts --outdir dist --target node && tsc --project tsconfig.build.json --emitDeclarationOnly --outDir dist && mkdir -p agents && for f in ../../agents/*.md; do bun run ../../scripts/filter-agent.ts \"\" opencode \"agents/\"\"\"; done",
+    "build": "rm -rf skills && mkdir -p skills && cp -r ../../skills/* skills/ 2>/dev/null; cp -r ../../upstream/skills/* skills/ 2>/dev/null; bun build src/index.ts --outdir dist --target node && tsc --project tsconfig.build.json --emitDeclarationOnly --outDir dist && mkdir -p agents && for f in ../../agents/*.md; do bun run ../../scripts/filter-agent.ts \"$f\" opencode \"agents/$(basename \"$f\")\"; done",
     "typecheck": "tsc --project tsconfig.build.json --noEmit"
   },
   "dependencies": {
