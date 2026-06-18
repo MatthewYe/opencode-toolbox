@@ -1,46 +1,25 @@
 {
-  "name": "@matthewye/autopilot-toolkit",
+  "name": "autopilot-toolkit-monorepo",
   "version": "1.0.0",
   "workspaces": [
     "packages/*"
   ],
   "description": "Autopilot development toolkit \u2014 skills, agents, commands for autonomous development workflow. Works with Codex and OpenCode.",
   "type": "module",
-  "main": "./dist/index.js",
   "license": "MIT",
-  "files": [
-    "dist/",
-    "src/",
-    ".codex-plugin/",
-    "templates/",
-    "principles/",
-    "skills/",
-    "upstream/skills/",
-    "agents/",
-    "commands/",
-    "docs/agents/"
-  ],
   "scripts": {
-    "build": "bun run build:core && bun run build:opencode && bun run build:codex && bun build src/index.ts --outdir dist --target node && bun run src/generate-codex.ts",
+    "build": "bun run build:core && bun run build:opencode && bun run build:codex",
     "build:core": "bun run build:templates && cd packages/core && bun run build",
     "build:templates": "bun run scripts/build-autopilot.ts",
     "build:opencode": "cd packages/opencode && bun run build",
     "build:codex": "cd packages/codex && bun run build",
-    "dev": "bun run --watch src/index.ts",
     "test": "bun test",
     "lint:autopilot": "bun run scripts/lint-autopilot.ts"
   },
-  "dependencies": {
-    "@opencode-ai/plugin": "latest",
-    "adm-zip": "^0.5.17",
-    "gray-matter": "^4.0.3"
-  },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
-    "@tsconfig/node22": "latest",
-    "@types/adm-zip": "^0.5.8",
     "@types/bun": "^1.3.14",
-    "@types/node": "latest",
     "typescript": "latest"
-  }
+  },
+  "private": true
 }

@@ -10,3 +10,4 @@ __golden__/
 packages/*/agents/
 packages/*/skills/
 packages/*/commands/
+commands/

@@ -8,6 +8,9 @@ import {
   parsePrinciples,
   readMarkdownConfigs,
   readSkillDirCommands,
+  getAgentsDir,
+  getCoreDir,
+  getPrinciplesDir,
 } from "@matthewye/autopilot-toolkit-core";
 import type { PrincipleSections } from "@matthewye/autopilot-toolkit-core";
 
@@ -15,13 +18,11 @@ type DynamicConfig = Config & Record<string, any>;
 
 export const AutopilotToolkit: Plugin = async ({ directory: _directory }) => {
   const pkgDir = path.resolve(import.meta.dirname, "..");
-  const workspaceRoot = path.resolve(pkgDir, "..", "..");
-
   const skillsDir = path.resolve(pkgDir, "skills");
-  const agentsDir = path.resolve(workspaceRoot, "agents");
+  const agentsDir = getAgentsDir();
   const commandsDir = path.resolve(pkgDir, "commands");
-  const principlesPath = path.resolve(workspaceRoot, "principles", "karpathy.md");
-  const primaryPrinciplesPath = path.resolve(workspaceRoot, "principles", "karpathy-primary.md");
+  const principlesPath = path.resolve(getPrinciplesDir(), "karpathy.md");
+  const primaryPrinciplesPath = path.resolve(getPrinciplesDir(), "karpathy-primary.md");
 
   const agentsRaw = readMarkdownConfigs(agentsDir);
   const commandsRaw = readMarkdownConfigs(commandsDir);

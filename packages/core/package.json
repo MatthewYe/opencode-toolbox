@@ -2,7 +2,7 @@
   "name": "@matthewye/autopilot-toolkit-core",
   "version": "1.0.0",
   "private": true,
-  "description": "Shared core for autopilot-toolkit — types, content loading, Karpathy principles",
+  "description": "Shared core for autopilot-toolkit \u2014 types, content loading, Karpathy principles",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -22,5 +22,12 @@
   "devDependencies": {
     "@types/node": "latest",
     "typescript": "latest"
-  }
+  },
+  "files": [
+    "dist/",
+    "src/",
+    "agents/",
+    "principles/",
+    "templates/"
+  ]
 }

@@ -4,9 +4,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { getAgentsDir } from "@matthewye/autopilot-toolkit-core";
 
 const pkgDir = path.resolve(import.meta.dirname, "..");
-const workspaceRoot = path.resolve(pkgDir, "..", "..");
 // Filter platform markers from content
 function filterForCodex(content: string): string {
   return content.replace(/<!--\s*OP_ONLY\s*-->[\s\S]*?<!--\s*\/OP_ONLY\s*-->/g, "")
@@ -63,7 +63,7 @@ function generatePluginJson() {
 
 // Generate .toml agent files
 function generateAgentTomls() {
-  const agentsDir = path.resolve(workspaceRoot, "agents");
+  const agentsDir = getAgentsDir();
   const tomlDir = path.resolve(pkgDir, ".codex", "agents");
   ensureDir(tomlDir);
 

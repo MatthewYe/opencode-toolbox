@@ -148,3 +148,20 @@ export function readSkillDirCommands(dirPath: string): Record<string, Frontmatte
 export function getPackageRoot(): string {
   return path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 }
+
+// ── Asset Paths ─────────────────────────────────────────────────
+
+/** Returns the directory containing agent .md files. */
+export function getAgentsDir(): string {
+  return path.resolve(getPackageRoot(), "agents");
+}
+
+/** Returns the directory containing Karpathy principles. */
+export function getPrinciplesDir(): string {
+  return path.resolve(getPackageRoot(), "principles");
+}
+
+/** Returns the core package root directory. Alias for getPackageRoot. */
+export function getCoreDir(): string {
+  return getPackageRoot();
+}
