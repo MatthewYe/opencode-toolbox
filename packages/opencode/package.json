@@ -1,0 +1,26 @@
+{
+  "name": "@matthewye/opencode-toolbox",
+  "version": "1.0.0",
+  "description": "OpenCode plugin for autopilot development toolkit",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "mkdir -p skills && cp -r ../../skills/* skills/ 2>/dev/null; mkdir -p skills && cp -r ../../upstream/skills/* skills/ 2>/dev/null; bun build src/index.ts --outdir dist --target node && tsc --project tsconfig.build.json --emitDeclarationOnly --outDir dist && mkdir -p agents && for f in ../../agents/*.md; do bun run ../../scripts/filter-agent.ts \"\" opencode \"agents/\"\"\"; done",
+    "typecheck": "tsc --project tsconfig.build.json --noEmit"
+  },
+  "dependencies": {
+    "@matthewye/autopilot-toolkit-core": "workspace:*",
+    "@opencode-ai/plugin": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "latest"
+  }
+}

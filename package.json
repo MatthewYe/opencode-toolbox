@@ -1,7 +1,10 @@
 {
   "name": "@matthewye/autopilot-toolkit",
   "version": "1.0.0",
-  "description": "Autopilot development toolkit — skills, agents, commands for autonomous development workflow. Works with Codex and OpenCode.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "description": "Autopilot development toolkit \u2014 skills, agents, commands for autonomous development workflow. Works with Codex and OpenCode.",
   "type": "module",
   "main": "./dist/index.js",
   "license": "MIT",
@@ -18,8 +21,14 @@
     "docs/agents/"
   ],
   "scripts": {
-    "build": "bun build src/index.ts --outdir dist --target node && bun run src/generate-codex.ts",
-    "dev": "bun run --watch src/index.ts"
+    "build": "bun run build:core && (bun run build:opencode & bun run build:codex & wait) && bun build src/index.ts --outdir dist --target node && bun run src/generate-codex.ts",
+    "build:core": "bun run build:templates && cd packages/core && bun run build",
+    "build:templates": "bun run scripts/build-autopilot.ts",
+    "build:opencode": "cd packages/opencode && bun run build",
+    "build:codex": "cd packages/codex && bun run build",
+    "dev": "bun run --watch src/index.ts",
+    "test": "bun test",
+    "lint:autopilot": "bun run scripts/lint-autopilot.ts"
   },
   "dependencies": {
     "@opencode-ai/plugin": "latest",

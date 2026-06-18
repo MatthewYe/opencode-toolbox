@@ -1,0 +1,13 @@
+{
+  "name": "@matthewye/autopilot-toolkit-codex",
+  "version": "1.0.0",
+  "description": "Autopilot development toolkit for Codex",
+  "skills": [
+    {
+      "path": "skills"
+    }
+  ],
+  "interface": {
+    "agents": ".codex/agents"
+  }
+}
