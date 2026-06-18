@@ -37,24 +37,6 @@ function generatePluginJson() {
   };
 }
 
-// ── Command → Skill bridges ─────────────────────────────────────
-
-function buildCommandBridges() {
-  const commandsDir = path.join(ROOT, "commands");
-  if (!fs.existsSync(commandsDir)) return;
-  const commands = readMarkdownConfigs(commandsDir);
-  console.log(`  Found ${Object.keys(commands).length} commands`);
-  for (const [cmdName, entry] of Object.entries(commands)) {
-    const skillName = SKILL_NAME_COLLISIONS[cmdName] ?? cmdName;
-    const skillDir = path.join(ROOT, "skills", skillName);
-    fs.mkdirSync(skillDir, { recursive: true });
-    const desc = entry.description || `Execute the ${cmdName} workflow`;
-    fs.writeFileSync(path.join(skillDir, "SKILL.md"),
-      `---\nname: ${skillName}\ndescription: ${desc}\n---\n\n${entry.prompt}\n`, "utf8");
-    console.log(`  Generated skill bridge: skills/${skillName}/SKILL.md`);
-  }
-}
-
 // ── Upstream skill copies ───────────────────────────────────────
 
 function copyDir(src: string, dest: string) {
