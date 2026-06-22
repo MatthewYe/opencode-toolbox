@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const SCRIPTS_DIR = join(import.meta.dir, "..");
-const _FIXTURES_DIR = join(import.meta.dir, "..", "..", "..", "..", "test-fixtures", "skill-creator");
+const _FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 
 // =============================================================================
 // Slice 1: Stream-json parsing (pure function)

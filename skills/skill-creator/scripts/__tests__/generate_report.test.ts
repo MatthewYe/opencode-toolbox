@@ -6,7 +6,7 @@ import { join } from "node:path";
 import type { LoopData } from "../generate_report";
 import { generateHtml } from "../generate_report";
 
-const FIXTURES_DIR = join(import.meta.dir, "..", "..", "..", "..", "test-fixtures", "skill-creator");
+const FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 const SCRIPTS_DIR = join(import.meta.dir, "..");
 
 function loadFixture(name: string): LoopData {

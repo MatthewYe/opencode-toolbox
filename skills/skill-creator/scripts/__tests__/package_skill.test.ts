@@ -10,7 +10,7 @@ import { packageSkill, shouldExclude } from "../package_skill";
 // Slice 2: packageSkill (integration with temp dirs)
 // =============================================================================
 
-const _FIXTURES_DIR = join(import.meta.dir, "..", "..", "..", "..", "test-fixtures", "skill-creator");
+const _FIXTURES_DIR = join(import.meta.dir, "..", "__fixtures__");
 const SCRIPTS_DIR = join(import.meta.dir, "..");
 
 function makeSkillDir(files: Record<string, string>): string {

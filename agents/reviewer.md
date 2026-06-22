@@ -1,5 +1,4 @@
 ---
-name: reviewer
 description: Autopilot任务审查者。四维审查：Behavior对齐、TDD纪律、代码质量、计划忠实度与跨模块一致性。只读不写。
 mode: subagent
 hidden: false
