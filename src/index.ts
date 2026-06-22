@@ -11,20 +11,95 @@ interface FrontmatterEntry {
   [key: string]: unknown;
 }
 
-interface AgentConfig {
+export interface AgentConfig {
   prompt: string;
   [key: string]: unknown;
 }
 
-interface CommandConfig {
+export interface CommandConfig {
   template: string;
   args?: unknown;
   [key: string]: unknown;
 }
 
+// ── Self-Report ───────────────────────────────────────────────────
+
+export interface SelfReport {
+  version: string;
+  generated_at: string;
+  agents: Record<string, { prompt_includes_principles: boolean }>;
+  commands: Record<string, Record<string, never>>;
+  upstream_skill_commands: string[];
+  skill_paths: string[];
+  principles_injected: boolean;
+  instructions_injected: boolean;
+}
+
+export function generateSelfReport(params: {
+  agentConfigs: Record<string, AgentConfig>;
+  commandConfigs: Record<string, CommandConfig>;
+  upstreamCommandConfigs: Record<string, CommandConfig>;
+  skillPaths: string[];
+  principleSections: PrincipleSections | null;
+  instructionsInjected: boolean;
+  version: string;
+}): SelfReport {
+  const {
+    agentConfigs,
+    commandConfigs,
+    upstreamCommandConfigs,
+    skillPaths,
+    principleSections,
+    instructionsInjected,
+    version,
+  } = params;
+
+  const principlesInjected = principleSections !== null;
+
+  const agents: Record<string, { prompt_includes_principles: boolean }> = {};
+  for (const [name] of Object.entries(agentConfigs)) {
+    // An agent has principles injected if: principleSections is non-null AND
+    // the agent name has a non-empty entry in AGENT_PRINCIPLE_MAP
+    const hasPrinciples =
+      principlesInjected &&
+      AGENT_PRINCIPLE_MAP[name] !== undefined &&
+      AGENT_PRINCIPLE_MAP[name].length > 0;
+    agents[name] = { prompt_includes_principles: hasPrinciples };
+  }
+
+  const commands: Record<string, Record<string, never>> = {};
+  for (const name of Object.keys(commandConfigs)) {
+    commands[name] = {};
+  }
+
+  const upstreamSkillCommands = Object.keys(upstreamCommandConfigs);
+
+  return {
+    version,
+    generated_at: new Date().toISOString(),
+    agents,
+    commands,
+    upstream_skill_commands: upstreamSkillCommands,
+    skill_paths: skillPaths,
+    principles_injected: principlesInjected,
+    instructions_injected: instructionsInjected,
+  };
+}
+
+function writeSelfReport(reportData: SelfReport, projectDir: string): void {
+  try {
+    const dir = path.resolve(projectDir, ".opencode");
+    fs.mkdirSync(dir, { recursive: true });
+    const filePath = path.join(dir, ".toolbox-lint-report.json");
+    fs.writeFileSync(filePath, JSON.stringify(reportData, null, 2));
+  } catch {
+    // Silent failure — do not block plugin loading
+  }
+}
+
 // ── Karpathy Principles ───────────────────────────────────────────
 
-interface PrincipleSections {
+export interface PrincipleSections {
   v1Coding: string;
   v1Judging: string;
   v1Analyzing: string;
@@ -148,7 +223,8 @@ function readSkillDirCommands(dirPath: string): Record<string, FrontmatterEntry>
 // biome-ignore lint/suspicious/noExplicitAny: plugin config is dynamically extended by consumers
 type DynamicConfig = Config & Record<string, any>;
 
-export const OpenCodeToolbox: Plugin = async ({ directory: _directory }) => {
+export const OpenCodeToolbox: Plugin = async ({ directory }) => {
+  const projectDir = directory;
   const skillsDir = path.resolve(__dirname, "skills");
   const upstreamEngDir = path.resolve(__dirname, "upstream", "skills", "engineering");
   const upstreamProdDir = path.resolve(__dirname, "upstream", "skills", "productivity");
@@ -171,6 +247,17 @@ export const OpenCodeToolbox: Plugin = async ({ directory: _directory }) => {
   if (fs.existsSync(principlesPath)) {
     const rawPrinciples = fs.readFileSync(principlesPath, "utf8");
     principleSections = parsePrinciples(rawPrinciples);
+  }
+
+  // ── Plugin version ────────────────────────────────────────────
+  const pkgPath = path.resolve(__dirname, "package.json");
+  let pkgVersion = "0.0.0";
+  try {
+    const pkgRaw = fs.readFileSync(pkgPath, "utf8");
+    const pkg = JSON.parse(pkgRaw);
+    pkgVersion = pkg.version ?? "0.0.0";
+  } catch {
+    // Keep default
   }
 
   return {
@@ -208,6 +295,18 @@ export const OpenCodeToolbox: Plugin = async ({ directory: _directory }) => {
       if (!cfg.instructions.includes(primaryPrinciplesPath)) {
         cfg.instructions.push(primaryPrinciplesPath);
       }
+
+      // ── Self-report: write config introspection to disk ─────────
+      const report = generateSelfReport({
+        agentConfigs,
+        commandConfigs,
+        upstreamCommandConfigs,
+        skillPaths,
+        principleSections,
+        instructionsInjected: true,
+        version: pkgVersion,
+      });
+      writeSelfReport(report, projectDir);
     },
   };
 };

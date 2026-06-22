@@ -84,6 +84,22 @@ _Avoid_: Full review, second pass
 One of 9 fixed questions in the audit-autopilot checklist, each mapped to a fidelity layer and scoring rubric. Questions are answered by examining session traces (orchestrator ± subagent), with each answer requiring a score, rationale, and evidence anchor when non-PASS.
 _Avoid_: Audit item, evaluation criteria
 
+**`/toolbox-lint`**:
+A self-diagnostic command that verifies the toolbox plugin is correctly and completely installed on OpenCode. Runs a three-level check — L1: file and directory existence, L2: content correctness (frontmatter validity, principles inclusion, self-report cross-referencing), L3: functional smoke (canary probes, skill loading, agent dispatch). Outputs a `TOOLBOX_LINT_REPORT` with per-item PASS/FAIL/WARN verdicts.
+_Avoid_: toolbox-check, install-verify, self-test
+
+**Canary (探针)**:
+A lightweight skill and command injected by the plugin solely for runtime verification. When loaded or invoked, the canary returns a fixed-signature response (`CANARY_OK: ...`). A successful canary invocation proves that the corresponding registration channel (skill path or command) is working end-to-end through OpenCode.
+_Avoid_: Probe, healthcheck skill, ping
+
+**Self-report (自我报告)**:
+A JSON snapshot written by the plugin's `config` hook to `.opencode/.toolbox-lint-report.json` on every startup. Records exactly which agents, commands, skill paths, upstream skill commands, and principles were injected into OpenCode's configuration. Used by `/toolbox-lint` for cross-referencing against the file system.
+_Avoid_: Install manifest, registration log, config dump
+
+**TOOLBOX_LINT_REPORT**:
+The structured output of `/toolbox-lint`, consisting of a report header (`TOOLBOX_LINT_REPORT:`) followed by a three-tier checklist (L1/L2/L3) with per-item PASS/FAIL/WARN verdicts.
+_Avoid_: Lint output, check result
+
 ### Example dialogue
 
 > **Dev**: "/autopilot .scratch/auth/issues/01-login"
