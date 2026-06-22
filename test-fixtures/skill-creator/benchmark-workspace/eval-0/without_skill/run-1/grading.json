@@ -1,0 +1,25 @@
+{
+  "summary": {
+    "pass_rate": 0.55,
+    "passed": 11,
+    "failed": 9,
+    "total": 20
+  },
+  "timing": {
+    "total_duration_seconds": 62.1
+  },
+  "execution_metrics": {
+    "total_tool_calls": 12,
+    "output_chars": 3500,
+    "errors_encountered": 3
+  },
+  "expectations": [
+    { "text": "Handles edge case A", "passed": false, "evidence": "timeout on edge case" },
+    { "text": "Handles edge case B", "passed": false, "evidence": "incorrect parsing" }
+  ],
+  "user_notes_summary": {
+    "uncertainties": ["Unsure about prompt structure"],
+    "needs_review": ["Output format inconsistent"],
+    "workarounds": ["Retried with different prompt"]
+  }
+}
