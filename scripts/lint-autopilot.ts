@@ -6,7 +6,7 @@
  * for semantic drift, outputting a structured JSON report.
  */
 
-import { readFileSync, existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOT = join(import.meta.dir, "..");
@@ -24,7 +24,7 @@ interface DriftEntry {
 function extractSection(content: string, sectionName: string): string {
   const regex = new RegExp(
     `(?:^|\\n)##?\\s*${sectionName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[^\\n]*\\n([\\s\\S]*?)(?=\\n##?\\s|$)`,
-    "i"
+    "i",
   );
   const match = content.match(regex);
   return match ? match[1].trim() : "(section not found)";
@@ -36,8 +36,10 @@ function extractKeyPhases(content: string): Record<string, string> {
   let match: RegExpExecArray | null;
   const matches: Array<{ title: string; start: number }> = [];
 
-  while ((match = sectionRegex.exec(content)) !== null) {
+  match = sectionRegex.exec(content);
+  while (match !== null) {
     matches.push({ title: match[1].trim(), start: match.index });
+    match = sectionRegex.exec(content);
   }
 
   for (let i = 0; i < matches.length; i++) {
@@ -48,10 +50,7 @@ function extractKeyPhases(content: string): Record<string, string> {
   return phases;
 }
 
-function comparePhases(
-  opencodePhases: Record<string, string>,
-  codexPhases: Record<string, string>
-): DriftEntry[] {
+function comparePhases(opencodePhases: Record<string, string>, codexPhases: Record<string, string>): DriftEntry[] {
   const entries: DriftEntry[] = [];
   const allKeys = new Set([...Object.keys(opencodePhases), ...Object.keys(codexPhases)]);
 

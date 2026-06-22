@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import { join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "fs";
 
 const TEMPLATES_DIR = import.meta.dir;
 const MANIFEST_PATH = join(TEMPLATES_DIR, "manifest.json");

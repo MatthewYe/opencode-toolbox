@@ -1,17 +1,16 @@
-import { describe, expect, test, beforeAll, afterAll } from "bun:test";
-import fs from "node:fs";
-import path from "node:path";
-import { mkdtempSync, rmSync } from "node:fs";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import fs, { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
+import path from "node:path";
 import {
-  parsePrinciples,
-  buildPrinciplesBlock,
-  readMarkdownConfigs,
   buildAgentConfigs,
   buildCommandConfigs,
-  readSkillDirCommands,
+  buildPrinciplesBlock,
   getPackageRoot,
   type PrincipleSections,
+  parsePrinciples,
+  readMarkdownConfigs,
+  readSkillDirCommands,
 } from "./shared.js";
 
 // ── Test helpers ────────────────────────────────────────────────
@@ -27,11 +26,7 @@ function writeMarkdown(dir: string, name: string, content: string) {
 function writeSkillDir(dir: string, skillName: string, frontmatterContent: string, bodyContent: string = "") {
   const skillDir = path.join(dir, skillName);
   fs.mkdirSync(skillDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(skillDir, "SKILL.md"),
-    `---\n${frontmatterContent}\n---\n${bodyContent}`,
-    "utf8",
-  );
+  fs.writeFileSync(path.join(skillDir, "SKILL.md"), `---\n${frontmatterContent}\n---\n${bodyContent}`, "utf8");
 }
 
 // ── Sample principles content for testing ───────────────────────
@@ -153,13 +148,17 @@ describe("readMarkdownConfigs", () => {
   test("reads markdown files from a directory and extracts frontmatter + prompt", () => {
     const tmp = makeTempDir();
     try {
-      writeMarkdown(tmp, "test-agent", `---
+      writeMarkdown(
+        tmp,
+        "test-agent",
+        `---
 name: Test Agent
 description: A test agent
 ---
 
 This is the agent prompt content.
-`);
+`,
+      );
 
       const configs = readMarkdownConfigs(tmp);
       expect(configs["test-agent"]).toBeDefined();

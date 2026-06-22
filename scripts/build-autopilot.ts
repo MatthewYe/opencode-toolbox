@@ -8,8 +8,8 @@
  *   packages/codex/skills/autopilot/SKILL.md   (Codex)
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { join, dirname } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 
 const ROOT = join(import.meta.dir, "..");
 const TEMPLATES_DIR = join(ROOT, "packages/core/templates/autopilot");
@@ -39,13 +39,11 @@ function buildPlatform(platform: "opencode" | "codex", fileList: string[]): stri
 
     if (!existsSync(fullPath)) {
       throw new Error(
-        `Template file not found: ${relativePath}\n` +
-        `  Expected at: ${fullPath}\n` +
-        `  Platform: ${platform}`
+        `Template file not found: ${relativePath}\n` + `  Expected at: ${fullPath}\n` + `  Platform: ${platform}`,
       );
     }
 
-    let content = readFileSync(fullPath, "utf-8");
+    const content = readFileSync(fullPath, "utf-8");
     parts.push(content);
   }
 
@@ -85,9 +83,7 @@ function main(): void {
     try {
       const content = buildPlatform(platform, manifest[platform]);
       writeFileSync(outputPath, content, "utf-8");
-      console.log(
-        `[${platform}] Built ${content.length} bytes → ${outputPath.replace(ROOT + "/", "")}`
-      );
+      console.log(`[${platform}] Built ${content.length} bytes → ${outputPath.replace(ROOT + "/", "")}`);
     } catch (e) {
       console.error(`[${platform}] Build failed:`, (e as Error).message);
       process.exit(1);

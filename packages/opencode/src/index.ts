@@ -1,18 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
-import type { Config, Plugin } from "@opencode-ai/plugin";
+import type { PrincipleSections } from "@matthewye/autopilot-toolkit-core";
 import {
   buildAgentConfigs,
   buildCommandConfigs,
   buildPrinciplesBlock,
-  parsePrinciples,
-  readMarkdownConfigs,
-  readSkillDirCommands,
   getAgentsDir,
   getCoreDir,
   getPrinciplesDir,
+  parsePrinciples,
+  readMarkdownConfigs,
+  readSkillDirCommands,
 } from "@matthewye/autopilot-toolkit-core";
-import type { PrincipleSections } from "@matthewye/autopilot-toolkit-core";
+import type { Config, Plugin } from "@opencode-ai/plugin";
 
 type DynamicConfig = Config & Record<string, any>;
 
