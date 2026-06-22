@@ -1,0 +1,25 @@
+{
+  "summary": {
+    "pass_rate": 0.40,
+    "passed": 8,
+    "failed": 12,
+    "total": 20
+  },
+  "timing": {
+    "total_duration_seconds": 70.5
+  },
+  "execution_metrics": {
+    "total_tool_calls": 15,
+    "output_chars": 4000,
+    "errors_encountered": 4
+  },
+  "expectations": [
+    {"text": "Handles basic case", "passed": false, "evidence": "timeout"},
+    {"text": "Handles edge case", "passed": false, "evidence": "wrong output"}
+  ],
+  "user_notes_summary": {
+    "uncertainties": ["Unclear prompt requirements"],
+    "needs_review": ["Needs better error handling"],
+    "workarounds": []
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "summary": {
+    "pass_rate": 0.85,
+    "passed": 17,
+    "failed": 3,
+    "total": 20
+  },
+  "timing": {
+    "total_duration_seconds": 45.2
+  },
+  "execution_metrics": {
+    "total_tool_calls": 8,
+    "output_chars": 2500,
+    "errors_encountered": 1
+  },
+  "expectations": [
+    {"text": "Handles edge case A", "passed": true, "evidence": "correct output format and value"},
+    {"text": "Handles edge case B", "passed": false, "evidence": "returned wrong type"}
+  ],
+  "user_notes_summary": {
+    "uncertainties": ["Edge case B may need alternative approach"],
+    "needs_review": [],
+    "workarounds": ["Used retry for case B"]
+  }
+}
