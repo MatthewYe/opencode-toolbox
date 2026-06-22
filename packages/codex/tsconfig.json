@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "declaration": true,
+    "types": ["node"],
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}

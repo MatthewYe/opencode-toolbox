@@ -1,0 +1,25 @@
+{
+  "name": "@matthewye/autopilot-toolkit-codex",
+  "version": "1.0.0",
+  "description": "Codex plugin for autopilot development toolkit",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf skills && mkdir -p skills && cp -r ../../skills/* skills/ 2>/dev/null; cp -r ../../upstream/skills/* skills/ 2>/dev/null; bun run src/index.ts && bun build src/index.ts --outdir dist --target node && tsc --project tsconfig.build.json --emitDeclarationOnly --outDir dist",
+    "typecheck": "tsc --project tsconfig.build.json --noEmit"
+  },
+  "dependencies": {
+    "@matthewye/autopilot-toolkit-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "latest"
+  }
+}
