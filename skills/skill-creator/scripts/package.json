@@ -1,0 +1,8 @@
+{
+  "name": "skill-creator-scripts",
+  "private": true,
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "adm-zip": "^0.5.17"
+  }
+}

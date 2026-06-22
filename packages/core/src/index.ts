@@ -4,7 +4,7 @@ export * from "./shared.js";
 // AutopilotToolkit: Karpathy principles injection for agent prompts.
 // Retained for backward compatibility with integration tests.
 export async function AutopilotToolkit(_opts?: Record<string, unknown>) {
-  const { buildPrinciplesBlock, parsePrinciples, getPrinciplesDir } = await import("./shared.js");
+  const { buildPrinciplesBlock, parsePrinciples, getPrinciplesDir, AGENT_PRINCIPLE_MAP } = await import("./shared.js");
   const { readFileSync, existsSync } = await import("node:fs");
   const { join } = await import("node:path");
 
@@ -20,11 +20,11 @@ export async function AutopilotToolkit(_opts?: Record<string, unknown>) {
       const content = readFileSync(principlesPath, "utf8");
       const sections = parsePrinciples(content);
 
-      for (const [agentName, agentCfg] of Object.entries(agents)) {
-        if (typeof agentCfg === "object" && agentCfg !== null) {
-          const block = buildPrinciplesBlock(sections, agentName);
-          if (block) agentCfg.prompt = block;
-        }
+      // Populate ALL known agents, not just those in the config
+      for (const agentName of Object.keys(AGENT_PRINCIPLE_MAP)) {
+        if (!agents[agentName]) agents[agentName] = {};
+        const block = buildPrinciplesBlock(sections, agentName);
+        if (block) agents[agentName].prompt = block;
       }
     },
   };
