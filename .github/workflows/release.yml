@@ -1,0 +1,54 @@
+ name: Release
+ 
+ on:
+   push:
+     tags: ['v*']
+   workflow_dispatch:
+ 
+ permissions:
+   contents: write
+ 
+ jobs:
+   release:
+     runs-on: ubuntu-latest
+     timeout-minutes: 10
+ 
+     steps:
+       - uses: actions/checkout@v4
+ 
+       - uses: oven-sh/setup-bun@v2
+         with:
+           bun-version: latest
+ 
+       - uses: actions/cache@v4
+         id: cache
+         with:
+           path: ~/.bun/install/cache
+           key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
+           restore-keys: |
+             ${{ runner.os }}-bun-
+ 
+       - run: bun install
+ 
+       - run: bun run build:codex
+ 
+       - name: Prepare release branch content
+         run: |
+           mkdir -p /tmp/release/.agents/plugins
+           mkdir -p /tmp/release/packages/codex
+           cp .agents/plugins/marketplace.json /tmp/release/.agents/plugins/
+           cp -r packages/codex/.codex-plugin /tmp/release/packages/codex/
+           cp -r packages/codex/.codex /tmp/release/packages/codex/
+           cp -r packages/codex/skills /tmp/release/packages/codex/
+           cp -r packages/codex/dist /tmp/release/packages/codex/
+ 
+       - name: Push to release-codex
+         run: |
+           cd /tmp/release
+           git init
+           git checkout -b release-codex
+           git config user.name "github-actions[bot]"
+           git config user.email "github-actions[bot]@users.noreply.github.com"
+           git add -A
+           git commit -m "release: autopilot-toolkit-codex ${{ github.ref_name }}"
+           git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" release-codex
